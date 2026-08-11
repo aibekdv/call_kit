@@ -10,6 +10,7 @@ import '../../utils/group_call_layout_resolver.dart';
 import '../../widgets/call_avatar.dart';
 import '../../widgets/participant_tile.dart';
 import '../../widgets/thumbnail_row.dart';
+import '../../widgets/video_surface.dart';
 
 /// Renders the appropriate video layout based on call type and participant count.
 ///
@@ -96,12 +97,12 @@ class CallVideoContent extends StatelessWidget {
     if (isGroupCall && participants.isNotEmpty) {
       final remote = participants.first;
       if (remote.videoWidget != null && !remote.isCameraOff) {
-        return SizedBox.expand(child: remote.videoWidget!);
+        return VideoSurface(child: remote.videoWidget!);
       }
     }
 
     if (hasRemoteVideo) {
-      return remoteVideoWidget!;
+      return VideoSurface(child: remoteVideoWidget!);
     }
 
     return ColoredBox(
@@ -127,16 +128,6 @@ class CallVideoContent extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (isCameraOff) ...[
-              const SizedBox(height: 4),
-              Text(
-                strings.cameraIsOff,
-                style: TextStyle(
-                  color: theme.textPrimary.withValues(alpha: 0.5),
-                  fontSize: 13,
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -154,10 +145,12 @@ class CallVideoContent extends StatelessWidget {
         Expanded(
           child: isScreenSharing
               ? _buildLocalSharingInfo()
-              : Container(
-                  color: const Color(0xFF0A0A0A),
-                  child: screenShareWidget ?? const SizedBox.expand(),
-                ),
+              : screenShareWidget != null
+                  ? VideoSurface(
+                      backgroundColor: const Color(0xFF0A0A0A),
+                      child: screenShareWidget!,
+                    )
+                  : const ColoredBox(color: Color(0xFF0A0A0A)),
         ),
         ThumbnailRow(
           participants: thumbnailParticipants,
@@ -338,10 +331,12 @@ class CallVideoContent extends StatelessWidget {
       children: [
         Expanded(
           flex: 65,
-          child: Container(
-            color: const Color(0xFF0A0A0A),
-            child: screenShareWidget ?? const SizedBox.expand(),
-          ),
+          child: screenShareWidget != null
+              ? VideoSurface(
+                  backgroundColor: const Color(0xFF0A0A0A),
+                  child: screenShareWidget!,
+                )
+              : const ColoredBox(color: Color(0xFF0A0A0A)),
         ),
         ThumbnailRow(
           participants: thumbnailParticipants,

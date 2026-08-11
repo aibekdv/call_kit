@@ -55,10 +55,10 @@ void main() {
     });
 
     test('copyWith can set videoWidget to null explicitly', () {
-      final withVideo = CallParticipant(
+      const withVideo = CallParticipant(
         id: 'u1',
         displayName: 'Alice',
-        videoWidget: const SizedBox(),
+        videoWidget: SizedBox(),
       );
       final cleared = withVideo.copyWith(videoWidget: null);
       expect(cleared.videoWidget, isNull);
@@ -89,10 +89,10 @@ void main() {
       });
 
       test('videoWidget is excluded from equality', () {
-        final a = CallParticipant(
+        const a = CallParticipant(
           id: 'u1',
           displayName: 'Alice',
-          videoWidget: const SizedBox(),
+          videoWidget: SizedBox(),
         );
         const b = CallParticipant(id: 'u1', displayName: 'Alice');
         expect(a, equals(b));

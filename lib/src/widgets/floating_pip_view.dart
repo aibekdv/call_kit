@@ -7,15 +7,25 @@ import 'package:flutter/material.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 import '../utils/pip_snap_calculator.dart';
+import 'video_surface.dart';
 
 /// A floating, draggable mini-view that displays the local participant's
 /// video stream during a call.
 ///
 /// When [child] is non-null it fills the PiP area; otherwise a dark background
-/// with initials is rendered as a fallback.
+/// with initials is rendered as a fallback. The frame is always opaque, so a
+/// host video widget that stops painting shows black rather than turning
+/// transparent.
 ///
-/// The view snaps to the nearest screen corner on drag release using
-/// [PipSnapCalculator.snapToNearestCorner].
+/// The view snaps to the nearest screen corner on drag release. What it keeps
+/// is the [PipCorner], not a pixel offset: the offset is derived from the
+/// corner and the reserved insets on every build. So when [topBarHeight] or
+/// [controlsHeight] change — the call controls fading out, a banner
+/// appearing — the PiP animates into the space that just freed up and back
+/// again, always staying in the corner the user put it in.
+///
+/// Callers that hide their controls should pass smaller insets while hidden;
+/// see `CallScreen` for the reference wiring.
 class FloatingPipView extends StatefulWidget {
   /// The local video widget rendered inside the PiP frame.
   final Widget? child;
@@ -32,14 +42,29 @@ class FloatingPipView extends StatefulWidget {
   /// The total screen size used for clamping and corner calculations.
   final Size screenSize;
 
-  /// The height of the top bar area (safe area inset + top bar).
+  /// The height of the area reserved at the top of the screen.
+  ///
+  /// The PiP keeps clear of it. Pass a smaller value while the top bar is
+  /// hidden and the PiP animates upwards into the freed space.
   final double topBarHeight;
 
-  /// The height of the controls area (controls bar + safe area inset).
+  /// The height of the area reserved at the bottom of the screen.
+  ///
+  /// Behaves like [topBarHeight], at the other edge.
   final double controlsHeight;
 
-  /// Listenable that indicates whether call controls are currently visible.
-  /// When controls hide, the PiP resnaps to use the full screen area.
+  /// No longer used.
+  ///
+  /// The PiP used to subscribe to this and re-snap to the nearest corner on
+  /// every visibility change, which recomputed the corner from stale pixels
+  /// and could drift to a different one. Pass visibility-dependent
+  /// [topBarHeight] and [controlsHeight] instead: the PiP animates to follow
+  /// them and keeps its corner.
+  @Deprecated(
+    'No longer used; pass visibility-dependent topBarHeight/controlsHeight '
+    'instead. This parameter has no effect and will be removed in a future '
+    'release.',
+  )
   final ValueListenable<bool>? controlsVisible;
 
   /// Called when the PiP view is tapped (e.g. to swap local/remote video).
@@ -55,6 +80,11 @@ class FloatingPipView extends StatefulWidget {
     required this.screenSize,
     required this.topBarHeight,
     required this.controlsHeight,
+    @Deprecated(
+      'No longer used; pass visibility-dependent topBarHeight/controlsHeight '
+      'instead. This parameter has no effect and will be removed in a future '
+      'release.',
+    )
     this.controlsVisible,
     this.onTap,
   });
@@ -71,99 +101,74 @@ class _FloatingPipViewState extends State<FloatingPipView> {
   static const _snapDuration = Duration(milliseconds: 220);
   static const _snapCurve = Curves.easeOutCubic;
 
-  late final ValueNotifier<Offset> _position;
-  final ValueNotifier<bool> _isDragging = ValueNotifier(false);
+  /// The corner the PiP is anchored to — the actual stored position.
+  PipCorner _corner = PipCorner.topRight;
 
-  @override
-  void initState() {
-    super.initState();
-    _position = ValueNotifier(_defaultPosition);
-    widget.controlsVisible?.addListener(_onControlsVisibilityChanged);
-  }
+  /// The free-form position while the user is dragging, and `null` at every
+  /// other moment. When null the position is derived from [_corner], which is
+  /// what lets the PiP follow the reserved insets without any listener.
+  final ValueNotifier<Offset?> _dragOffset = ValueNotifier(null);
 
   @override
   void didUpdateWidget(FloatingPipView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controlsVisible != widget.controlsVisible) {
-      oldWidget.controlsVisible
-          ?.removeListener(_onControlsVisibilityChanged);
-      widget.controlsVisible?.addListener(_onControlsVisibilityChanged);
-    }
-    if (oldWidget.screenSize != widget.screenSize) {
-      _position.value = _clampPosition(_position.value);
+    // The anchored position needs no maintenance — it is recomputed on every
+    // build. Only an in-flight drag has to be brought back into bounds.
+    final drag = _dragOffset.value;
+    if (drag != null &&
+        (oldWidget.screenSize != widget.screenSize ||
+            oldWidget.topBarHeight != widget.topBarHeight ||
+            oldWidget.controlsHeight != widget.controlsHeight)) {
+      _dragOffset.value = _clampPosition(drag);
     }
   }
 
   @override
   void dispose() {
-    widget.controlsVisible?.removeListener(_onControlsVisibilityChanged);
-    _position.dispose();
-    _isDragging.dispose();
+    _dragOffset.dispose();
     super.dispose();
   }
 
-  void _onControlsVisibilityChanged() {
-    // Resnap to nearest corner with updated insets.
-    _position.value = PipSnapCalculator.snapToNearestCorner(
-      current: _position.value,
-      screenSize: widget.screenSize,
-      pipSize: _pipSize,
-      margin: _margin,
-      topBarHeight: _effectiveTopBarHeight,
-      controlsHeight: _effectiveControlsHeight,
-    );
-  }
-
-  bool get _controlsShown =>
-      widget.controlsVisible?.value ?? true;
-
-  double get _effectiveTopBarHeight =>
-      _controlsShown ? widget.topBarHeight : 0;
-
-  double get _effectiveControlsHeight =>
-      _controlsShown ? widget.controlsHeight : 0;
-
-  Offset get _defaultPosition => Offset(
-        widget.screenSize.width - _pipSize.width - _margin,
-        _effectiveTopBarHeight + _margin,
+  Offset get _anchoredOffset => PipSnapCalculator.offsetForCorner(
+        _corner,
+        screenSize: widget.screenSize,
+        pipSize: _pipSize,
+        margin: _margin,
+        topBarHeight: widget.topBarHeight,
+        controlsHeight: widget.controlsHeight,
       );
 
-  Offset _clampPosition(Offset offset) {
-    final dx = offset.dx.clamp(
-      _margin,
-      widget.screenSize.width - _pipSize.width - _margin,
-    );
-    final dy = offset.dy.clamp(
-      _effectiveTopBarHeight + _margin,
-      widget.screenSize.height -
-          _pipSize.height -
-          _effectiveControlsHeight -
-          _margin,
-    );
-    return Offset(dx.toDouble(), dy.toDouble());
+  Offset _clampPosition(Offset offset) => PipSnapCalculator.clampToBounds(
+        offset,
+        screenSize: widget.screenSize,
+        pipSize: _pipSize,
+        margin: _margin,
+        topBarHeight: widget.topBarHeight,
+        controlsHeight: widget.controlsHeight,
+      );
+
+  void _onPanStart(DragStartDetails details) {
+    _dragOffset.value = _anchoredOffset;
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    _isDragging.value = true;
-    _position.value = _clampPosition(
-      Offset(
-        _position.value.dx + details.delta.dx,
-        _position.value.dy + details.delta.dy,
-      ),
-    );
+    final current = _dragOffset.value ?? _anchoredOffset;
+    _dragOffset.value = _clampPosition(current + details.delta);
   }
 
   void _onPanEnd(DragEndDetails details) {
-    final target = PipSnapCalculator.snapToNearestCorner(
-      current: _position.value,
-      screenSize: widget.screenSize,
-      pipSize: _pipSize,
-      margin: _margin,
-      topBarHeight: _effectiveTopBarHeight,
-      controlsHeight: _effectiveControlsHeight,
-    );
-    _isDragging.value = false;
-    _position.value = target;
+    final released = _dragOffset.value;
+    if (released != null) {
+      setState(() {
+        _corner = PipSnapCalculator.nearestCorner(
+          current: released,
+          screenSize: widget.screenSize,
+          pipSize: _pipSize,
+        );
+      });
+    }
+    // Handing control back to the anchor animates the PiP into its corner.
+    _dragOffset.value = null;
   }
 
   Widget _buildFallbackContent() {
@@ -178,8 +183,7 @@ class _FloatingPipViewState extends State<FloatingPipView> {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor:
-                  widget.theme.barBackground,
+              backgroundColor: widget.theme.barBackground,
               child: Text(
                 initial,
                 style: TextStyle(
@@ -206,6 +210,7 @@ class _FloatingPipViewState extends State<FloatingPipView> {
   @override
   Widget build(BuildContext context) {
     final pipChild = GestureDetector(
+      onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       onTap: widget.onTap,
@@ -220,26 +225,32 @@ class _FloatingPipViewState extends State<FloatingPipView> {
           ),
         ),
         child: ClipRRect(
-          borderRadius:
-              BorderRadius.circular(_borderRadius - _borderWidth),
-          child: widget.child ?? _buildFallbackContent(),
+          borderRadius: BorderRadius.circular(_borderRadius - _borderWidth),
+          // The opaque backing matters: a host renderer that stops painting
+          // (a disposed texture after a reconnect, for example) would
+          // otherwise leave a see-through hole framed by the border.
+          child: widget.child != null
+              ? VideoSurface(child: widget.child!)
+              : _buildFallbackContent(),
         ),
       ),
     );
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: _isDragging,
-      builder: (context, dragging, _) => ValueListenableBuilder<Offset>(
-        valueListenable: _position,
-        builder: (context, pos, child) => AnimatedPositioned(
-          duration: dragging ? Duration.zero : _snapDuration,
+    return ValueListenableBuilder<Offset?>(
+      valueListenable: _dragOffset,
+      builder: (context, drag, child) {
+        final position = drag ?? _anchoredOffset;
+        return AnimatedPositioned(
+          // A drag tracks the finger 1:1; everything else — snapping to a
+          // corner, following the controls as they fade — is animated.
+          duration: drag != null ? Duration.zero : _snapDuration,
           curve: _snapCurve,
-          left: pos.dx,
-          top: pos.dy,
+          left: position.dx,
+          top: position.dy,
           child: child!,
-        ),
-        child: RepaintBoundary(child: pipChild),
-      ),
+        );
+      },
+      child: RepaintBoundary(child: pipChild),
     );
   }
 }

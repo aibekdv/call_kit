@@ -24,7 +24,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.text('Alice'), findsOneWidget);
@@ -39,7 +40,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byKey(const Key('video')), findsOneWidget);
@@ -53,7 +55,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byIcon(Icons.mic_off), findsOneWidget);
@@ -66,7 +69,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byIcon(Icons.mic_off), findsNothing);
@@ -80,7 +84,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byType(SignalStrengthIcon), findsOneWidget);
@@ -94,7 +99,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byType(SignalStrengthIcon), findsNothing);
@@ -108,7 +114,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       expect(find.byIcon(Icons.screen_share), findsOneWidget);
@@ -142,7 +149,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       final semantics = tester.getSemantics(find.byType(ParticipantTile));
@@ -159,7 +167,8 @@ void main() {
       );
 
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+            participant: participant, theme: theme, strings: strings),
       ));
 
       // CustomPaint for speaking border should be present
@@ -170,25 +179,28 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     });
 
-    testWidgets('video error boundary shows fallback on error', (tester) async {
-      final participant = CallParticipant(
+    testWidgets('video sits on an opaque surface', (tester) async {
+      const participant = CallParticipant(
         id: 'u1',
         displayName: 'Alice',
-        videoWidget: Builder(builder: (_) => throw Exception('texture error')),
+        // A renderer that paints nothing, as happens while a texture is being
+        // (re)attached after a reconnect.
+        videoWidget: SizedBox.expand(),
       );
 
-      // Suppress expected error output
-      final errors = <FlutterErrorDetails>[];
-      FlutterError.onError = (d) => errors.add(d);
-
       await tester.pumpWidget(_app(
-        ParticipantTile(participant: participant, theme: theme, strings: strings),
+        ParticipantTile(
+          participant: participant,
+          theme: theme,
+          strings: strings,
+        ),
       ));
 
-      // After error, should recover to fallback
-      await tester.pump();
-
-      FlutterError.onError = FlutterError.dumpErrorToConsole;
+      final backing = tester.widgetList<ColoredBox>(find.descendant(
+        of: find.byType(VideoSurface),
+        matching: find.byType(ColoredBox),
+      ));
+      expect(backing.any((b) => b.color == Colors.black), isTrue);
     });
   });
 }

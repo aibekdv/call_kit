@@ -78,9 +78,7 @@ class CallAvatar extends StatelessWidget {
   }
 
   Widget _buildInitialAvatar() {
-    final initial = displayName.isNotEmpty
-        ? displayName[0].toUpperCase()
-        : '?';
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
     final effectiveFontSize = fontSize ?? radius * 0.75;
     final hashSource = id ?? displayName;
     final colorIndex = hashSource.hashCode.abs() % avatarColors.length;

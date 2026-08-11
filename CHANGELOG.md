@@ -1,3 +1,30 @@
+## 0.5.0
+
+### Fixed
+* Local video no longer shows as a transparent hole in the PiP — the frame had no background, so a renderer that stopped painting (a texture disposed by a reconnect) showed straight through. All external video widgets now sit on an opaque `VideoSurface`.
+* Group video no longer goes stale after a reconnect: the cached participant list ignored `videoWidget` changes and kept rendering the disposed renderer.
+* PiP no longer drifts to another corner when the controls fade. It still follows them WhatsApp-style, but now stores its corner instead of a pixel offset.
+* Bottom bar no longer swallows taps and drags aimed at the PiP.
+* Buttons still visibly fading out now respond to taps (300 ms dead window removed).
+* Turning the local camera off no longer blanks the remote video after a tap-to-swap.
+* Personal-call fallback no longer claims the remote party's camera is off.
+* Screen-share banner now also appears in personal calls.
+* Modal sheets pause the auto-hide timer and refresh with the call state instead of showing a snapshot.
+* `CallBottomBar.height` was `94` while the bar measured `102`, halving the gap the PiP keeps from the controls.
+
+### Added
+* `CallConnectionState` and `ConnectionStateBanner` — pass `connectionState` for a persistent "Connecting…"/"Reconnecting…" banner. Adds `CallStrings.connecting` and `CallStrings.reconnecting`.
+* `callStatusListenable` — for values that tick, such as a call timer. `callStatusText` makes the host `setState`, which rebuilds every video surface once per tick (30 rebuilds per 10 s with three participants); a listenable rebuilds only the status line.
+* `PipCorner`, `PipSnapCalculator.nearestCorner` / `offsetForCorner` / `clampToBounds`.
+* Golden tests for six layouts, and CI running format, analysis and tests.
+* README: "Reconnection" and "Performance" sections.
+
+### Breaking
+* Removed `_VideoErrorBoundary` (0.4.0) in favour of `VideoSurface`. It never worked: Flutter catches paint exceptions in `RenderObject._paintWithContext` without rethrowing, so an ancestor `try`/`catch` was never reached.
+* `CallScreen`: removed `isHandRaised` and `onRaiseHand`, which were accepted and never used.
+* `FloatingPipView`: `controlsVisible` is deprecated and ignored — pass visibility-dependent `topBarHeight`/`controlsHeight` instead.
+* Internal layers: `CallTopBar.callType` and `CallBottomBar.bottomPadding` removed.
+
 ## 0.4.0
 
 ### Performance

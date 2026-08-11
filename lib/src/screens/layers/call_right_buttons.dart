@@ -10,6 +10,20 @@ import '../../models/call_theme.dart';
 ///
 /// Each button is shown only when its corresponding callback is provided.
 class CallRightButtons extends StatelessWidget {
+  static const double _buttonSize = 48;
+  static const double _spacing = 12;
+
+  /// The height this column occupies for the given set of buttons.
+  ///
+  /// Used by [CallScreen] to keep the PiP clear of the side buttons.
+  static double heightFor({required bool hasAdd, required bool hasEffects}) {
+    var height = 0.0;
+    if (hasAdd) height += _buttonSize;
+    if (hasEffects) height += _buttonSize;
+    if (hasAdd && hasEffects) height += _spacing;
+    return height;
+  }
+
   final CallTheme theme;
   final CallStrings strings;
   final VoidCallback? onAddParticipant;
@@ -36,7 +50,7 @@ class CallRightButtons extends StatelessWidget {
             onTap: onAddParticipant!,
             tooltip: strings.addParticipant,
           ),
-          const SizedBox(height: 12),
+          if (onEffects != null) const SizedBox(height: _spacing),
         ],
         if (onEffects != null)
           _buildSideButton(
@@ -61,8 +75,8 @@ class CallRightButtons extends StatelessWidget {
           onTap();
         },
         child: Container(
-          width: 48,
-          height: 48,
+          width: _buttonSize,
+          height: _buttonSize,
           decoration: BoxDecoration(
             color: theme.buttonBackground,
             shape: BoxShape.circle,

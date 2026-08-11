@@ -36,8 +36,7 @@ class ThumbnailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasOverflow =
-        maxVisible != null && participants.length > maxVisible!;
+    final hasOverflow = maxVisible != null && participants.length > maxVisible!;
     final itemCount = hasOverflow ? maxVisible! + 1 : participants.length;
 
     return SizedBox(
@@ -45,7 +44,6 @@ class ThumbnailRow extends StatelessWidget {
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-
         itemCount: itemCount,
         itemBuilder: (context, index) {
           // "+N more" tile

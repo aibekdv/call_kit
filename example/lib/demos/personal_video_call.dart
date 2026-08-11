@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:call_ui_kit/call_ui_kit.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +15,82 @@ class _PersonalVideoCallDemoState extends State<PersonalVideoCallDemo> {
   bool _isCameraOff = false;
   bool _isSpeakerOn = true;
   bool _isScreenSharing = false;
+  bool _isFrontCamera = true;
+
+  var _connectionState = CallConnectionState.connected;
+
+  /// Incremented whenever the media renderers are recreated.
+  ///
+  /// Real applications recreate their `RTCVideoRenderer` (or equivalent) on a
+  /// reconnect. Keying the video widgets by this counter tells Flutter to
+  /// mount the new renderer instead of reusing the element that still points
+  /// at the old, disposed one.
+  int _rendererGeneration = 0;
+
+  /// The video widgets are built once per renderer generation and held here,
+  /// not constructed inside `build`. A fresh instance on every rebuild would
+  /// force the kit to rebuild every video surface — which, with a call timer
+  /// ticking once a second, means rebuilding them for the whole call.
+  late Widget _localVideo;
+  late Widget _remoteVideo;
+
+  /// The call duration is pushed through a listenable rather than `setState`,
+  /// so a tick rebuilds only the status line in the top bar.
+  final ValueNotifier<String> _callStatus = ValueNotifier('00:00');
+  final Stopwatch _elapsed = Stopwatch();
+
+  Timer? _reconnectTimer;
+  Timer? _tickTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildVideoWidgets();
+    _elapsed.start();
+    _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final seconds = _elapsed.elapsed.inSeconds;
+      _callStatus.value = '${(seconds ~/ 60).toString().padLeft(2, '0')}:'
+          '${(seconds % 60).toString().padLeft(2, '0')}';
+    });
+  }
+
+  @override
+  void dispose() {
+    _reconnectTimer?.cancel();
+    _tickTimer?.cancel();
+    _callStatus.dispose();
+    super.dispose();
+  }
+
+  /// Replace the bodies with real renderer widgets from your WebRTC plugin.
+  /// The key is what matters: it must change when a renderer is recreated,
+  /// otherwise Flutter reuses the element and keeps the dead texture.
+  void _rebuildVideoWidgets() {
+    _localVideo = ColoredBox(
+      key: ValueKey('local-$_rendererGeneration'),
+      color: _isFrontCamera ? Colors.blueGrey : Colors.brown,
+    );
+    _remoteVideo = ColoredBox(
+      key: ValueKey('remote-$_rendererGeneration'),
+      color: Colors.teal,
+    );
+  }
+
+  /// Stands in for a dropped connection: the renderers are torn down, the call
+  /// reports "Reconnecting…", and a fresh generation of renderers comes back.
+  void _simulateReconnect() {
+    _reconnectTimer?.cancel();
+    setState(() => _connectionState = CallConnectionState.reconnecting);
+
+    _reconnectTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _rendererGeneration++;
+        _rebuildVideoWidgets();
+        _connectionState = CallConnectionState.connected;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,19 +103,22 @@ class _PersonalVideoCallDemoState extends State<PersonalVideoCallDemo> {
         displayName: 'You',
         isLocalUser: true,
       ),
-      // Replace with real video widgets from your WebRTC / camera plugin
-      localVideoWidget: Container(color: Colors.blueGrey),
-      remoteVideoWidget: Container(color: Colors.teal),
+      localVideoWidget: _localVideo,
+      remoteVideoWidget: _remoteVideo,
       isMuted: _isMuted,
       isCameraOff: _isCameraOff,
       isSpeakerOn: _isSpeakerOn,
       isScreenSharing: _isScreenSharing,
-      callStatusText: '04:23',
+      connectionState: _connectionState,
+      callStatusListenable: _callStatus,
       onEndCall: () => Navigator.pop(context),
       onToggleMute: () => setState(() => _isMuted = !_isMuted),
       onToggleCamera: () => setState(() => _isCameraOff = !_isCameraOff),
       onToggleSpeaker: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
-      onFlipCamera: () => debugPrint('Flip camera'),
+      onFlipCamera: () => setState(() {
+        _isFrontCamera = !_isFrontCamera;
+        _rebuildVideoWidgets();
+      }),
       onStopScreenShare: () => setState(() => _isScreenSharing = false),
       moreSheetBuilder: (context, theme) => _MoreSheetContent(
         theme: theme,
@@ -45,6 +126,10 @@ class _PersonalVideoCallDemoState extends State<PersonalVideoCallDemo> {
         onToggleScreenShare: () {
           Navigator.pop(context);
           setState(() => _isScreenSharing = !_isScreenSharing);
+        },
+        onSimulateReconnect: () {
+          Navigator.pop(context);
+          _simulateReconnect();
         },
         onSendMessage: () {
           Navigator.pop(context);
@@ -63,12 +148,14 @@ class _MoreSheetContent extends StatelessWidget {
   final CallTheme theme;
   final bool isScreenSharing;
   final VoidCallback onToggleScreenShare;
+  final VoidCallback onSimulateReconnect;
   final VoidCallback onSendMessage;
 
   const _MoreSheetContent({
     required this.theme,
     required this.isScreenSharing,
     required this.onToggleScreenShare,
+    required this.onSimulateReconnect,
     required this.onSendMessage,
   });
 
@@ -92,6 +179,17 @@ class _MoreSheetContent extends StatelessWidget {
               color: theme.textPrimary.withValues(alpha: 0.7),
             ),
             onTap: onToggleScreenShare,
+          ),
+          ListTile(
+            title: Text(
+              'Simulate Reconnect',
+              style: TextStyle(color: theme.textPrimary),
+            ),
+            trailing: Icon(
+              Icons.sync_problem,
+              color: theme.textPrimary.withValues(alpha: 0.7),
+            ),
+            onTap: onSimulateReconnect,
           ),
           ListTile(
             title: Text(

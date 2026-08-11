@@ -92,4 +92,70 @@ void main() {
       expect(result.dy, 116.0);
     });
   });
+
+  group('PipSnapCalculator.nearestCorner', () {
+    PipCorner cornerFor(Offset current) => PipSnapCalculator.nearestCorner(
+          current: current,
+          screenSize: screenSize,
+          pipSize: pipSize,
+        );
+
+    test('resolves each quadrant to its corner', () {
+      expect(cornerFor(const Offset(300, 50)), PipCorner.topRight);
+      expect(cornerFor(const Offset(10, 50)), PipCorner.topLeft);
+      expect(cornerFor(const Offset(300, 600)), PipCorner.bottomRight);
+      expect(cornerFor(const Offset(10, 600)), PipCorner.bottomLeft);
+    });
+
+    test('resolves an exactly centred pip to top-left', () {
+      expect(cornerFor(const Offset(150, 362)), PipCorner.topLeft);
+    });
+  });
+
+  group('PipSnapCalculator.offsetForCorner', () {
+    Offset offsetFor(
+      PipCorner corner, {
+      double top = topBarHeight,
+      double bottom = controlsHeight,
+      Size size = screenSize,
+    }) =>
+        PipSnapCalculator.offsetForCorner(
+          corner,
+          screenSize: size,
+          pipSize: pipSize,
+          margin: margin,
+          topBarHeight: top,
+          controlsHeight: bottom,
+        );
+
+    test('places each corner at the expected position', () {
+      expect(offsetFor(PipCorner.topLeft), const Offset(16, 116));
+      expect(offsetFor(PipCorner.topRight), const Offset(284, 116));
+      expect(offsetFor(PipCorner.bottomLeft), const Offset(16, 558));
+      expect(offsetFor(PipCorner.bottomRight), const Offset(284, 558));
+    });
+
+    test('follows shrinking insets', () {
+      // What happens when the call controls fade out.
+      expect(offsetFor(PipCorner.topRight, top: 0), const Offset(284, 16));
+      expect(
+        offsetFor(PipCorner.bottomRight, bottom: 0),
+        const Offset(284, 708),
+      );
+    });
+
+    test('keeps the pip on screen when the insets exceed the viewport', () {
+      final result = offsetFor(
+        PipCorner.bottomRight,
+        size: const Size(320, 320),
+        top: 200,
+        bottom: 200,
+      );
+
+      expect(result.dx, 214.0);
+      // Reserved areas leave no room, so the position collapses to the top of
+      // the allowed range rather than going off-screen.
+      expect(result.dy, 216.0);
+    });
+  });
 }

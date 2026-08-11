@@ -66,8 +66,7 @@ class ParticipantsPanel extends StatelessWidget {
         return DecoratedBox(
           decoration: BoxDecoration(
             color: theme.barBackground,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: Column(
             children: [
@@ -112,8 +111,8 @@ class ParticipantsPanel extends StatelessWidget {
                         ),
                       ),
                     IconButton(
-                      icon: Icon(Icons.close,
-                          color: theme.textPrimary, size: 20),
+                      icon:
+                          Icon(Icons.close, color: theme.textPrimary, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -172,9 +171,7 @@ class ParticipantsPanel extends StatelessWidget {
     final icons = <Widget>[
       if (p.isMuted)
         Icon(Icons.mic_off,
-            size: 18,
-            color: theme.textPrimary.withValues(alpha: 0.38)),
-
+            size: 18, color: theme.textPrimary.withValues(alpha: 0.38)),
       if (p.isScreenSharing)
         Icon(Icons.screen_share, size: 18, color: Colors.blue[300]),
       if (p.isHost)
@@ -261,8 +258,7 @@ class ParticipantsPanel extends StatelessWidget {
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: theme.barBackground,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.paddingOf(context).bottom + 16,
@@ -289,8 +285,8 @@ class ParticipantsPanel extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.remove_circle_outline,
-                  color: theme.endCallColor),
+              leading:
+                  Icon(Icons.remove_circle_outline, color: theme.endCallColor),
               title: Text(
                 strings.removeFromCall,
                 style: TextStyle(color: theme.endCallColor),

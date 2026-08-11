@@ -138,8 +138,9 @@ class CallParticipant {
     return CallParticipant(
       id: id ?? this.id,
       displayName: displayName ?? this.displayName,
-      avatarUrl:
-          identical(avatarUrl, _sentinel) ? this.avatarUrl : avatarUrl as String?,
+      avatarUrl: identical(avatarUrl, _sentinel)
+          ? this.avatarUrl
+          : avatarUrl as String?,
       isMuted: isMuted ?? this.isMuted,
       isCameraOff: isCameraOff ?? this.isCameraOff,
       isSpeaking: isSpeaking ?? this.isSpeaking,
@@ -147,8 +148,9 @@ class CallParticipant {
       isHost: isHost ?? this.isHost,
       isLocalUser: isLocalUser ?? this.isLocalUser,
       signalStrength: signalStrength ?? this.signalStrength,
-      videoWidget:
-          identical(videoWidget, _sentinel) ? this.videoWidget : videoWidget as Widget?,
+      videoWidget: identical(videoWidget, _sentinel)
+          ? this.videoWidget
+          : videoWidget as Widget?,
       screenShareWidget: identical(screenShareWidget, _sentinel)
           ? this.screenShareWidget
           : screenShareWidget as Widget?,
@@ -160,8 +162,7 @@ class CallParticipant {
   static const Object absent = _sentinel;
 
   @override
-  String toString() =>
-      'CallParticipant(id: $id, displayName: $displayName, '
+  String toString() => 'CallParticipant(id: $id, displayName: $displayName, '
       'muted: $isMuted, cameraOff: $isCameraOff, '
       'speaking: $isSpeaking, signal: ${signalStrength.name})';
 }

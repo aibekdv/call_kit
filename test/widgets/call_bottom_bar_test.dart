@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:call_ui_kit/call_ui_kit.dart';
 import 'package:call_ui_kit/src/screens/layers/call_bottom_bar.dart';
+import 'package:call_ui_kit/src/screens/layers/call_right_buttons.dart';
+import 'package:call_ui_kit/src/screens/layers/call_top_bar.dart';
 
 Widget _app(Widget child) {
   return MaterialApp(
@@ -198,6 +200,116 @@ void main() {
       ));
 
       expect(find.byIcon(Icons.more_horiz), findsOneWidget);
+    });
+
+    testWidgets('declared height matches the laid-out bar', (tester) async {
+      // CallScreen reserves CallBottomBar.height so the PiP keeps clear of the
+      // controls. If the constant and the real metrics drift apart, the PiP
+      // silently starts overlapping the bar.
+      await tester.pumpWidget(_app(
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: CallBottomBar(
+            theme: theme,
+            strings: strings,
+            isMuted: false,
+            isSpeakerOn: false,
+            onResetHideTimer: () {},
+            onToggleMute: () {},
+            onToggleSpeaker: () {},
+            onEndCall: () {},
+            onShowMore: () {},
+            onToggleCamera: () {},
+            onToggleScreenShare: () {},
+          ),
+        ),
+      ));
+
+      expect(
+        tester.getSize(find.byType(CallBottomBar)).height,
+        CallBottomBar.height,
+      );
+    });
+  });
+
+  group('CallTopBar', () {
+    testWidgets('declared height matches the laid-out bar', (tester) async {
+      await tester.pumpWidget(_app(
+        Align(
+          alignment: Alignment.topCenter,
+          child: CallTopBar(
+            theme: theme,
+            strings: strings,
+            callerName: 'Bob',
+            isGroupCall: false,
+            participantCount: 2,
+            onResetHideTimer: () {},
+            onFlipCamera: () {},
+            onMinimize: () {},
+          ),
+        ),
+      ));
+
+      expect(
+        tester.getSize(find.byType(CallTopBar)).height,
+        CallTopBar.height,
+      );
+    });
+  });
+
+  group('ConnectionStateBanner', () {
+    testWidgets('declared height matches the laid-out banner', (tester) async {
+      await tester.pumpWidget(_app(
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConnectionStateBanner(
+            state: CallConnectionState.reconnecting,
+            theme: theme,
+            strings: strings,
+          ),
+        ),
+      ));
+
+      expect(
+        tester.getSize(find.byType(ConnectionStateBanner)).height,
+        ConnectionStateBanner.height,
+      );
+    });
+  });
+
+  group('CallRightButtons', () {
+    testWidgets('heightFor matches the laid-out column', (tester) async {
+      Future<double> measure({
+        VoidCallback? onAdd,
+        VoidCallback? onEffects,
+      }) async {
+        await tester.pumpWidget(_app(
+          Align(
+            alignment: Alignment.topRight,
+            child: CallRightButtons(
+              theme: theme,
+              strings: strings,
+              onAddParticipant: onAdd,
+              onEffects: onEffects,
+              onResetHideTimer: () {},
+            ),
+          ),
+        ));
+        return tester.getSize(find.byType(CallRightButtons)).height;
+      }
+
+      expect(
+        await measure(onAdd: () {}, onEffects: () {}),
+        CallRightButtons.heightFor(hasAdd: true, hasEffects: true),
+      );
+      expect(
+        await measure(onAdd: () {}),
+        CallRightButtons.heightFor(hasAdd: true, hasEffects: false),
+      );
+      expect(
+        await measure(onEffects: () {}),
+        CallRightButtons.heightFor(hasAdd: false, hasEffects: true),
+      );
     });
   });
 }

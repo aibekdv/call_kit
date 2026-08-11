@@ -90,8 +90,7 @@ class _SpeakingIndicatorState extends State<SpeakingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final totalWidth =
-        widget.barWidth * _barCount + 2 * (_barCount - 1);
+    final totalWidth = widget.barWidth * _barCount + 2 * (_barCount - 1);
     return AnimatedOpacity(
       opacity: widget.visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 200),

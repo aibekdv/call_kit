@@ -95,6 +95,12 @@ class CallStrings {
   /// Status text shown when the call has ended.
   final String callEnded;
 
+  /// Banner text while the call is being established.
+  final String connecting;
+
+  /// Banner text while a dropped connection is being re-established.
+  final String reconnecting;
+
   // ── Accessibility labels ──
 
   /// Semantic label for the end-call button.
@@ -148,6 +154,8 @@ class CallStrings {
     required this.decline,
     required this.accept,
     required this.callEnded,
+    this.connecting = 'Connecting…',
+    this.reconnecting = 'Reconnecting…',
     this.endCall = 'End call',
     this.speaker = 'Speaker',
     this.camera = 'Camera',
@@ -192,6 +200,8 @@ class CallStrings {
       decline: 'Decline',
       accept: 'Accept',
       callEnded: 'Call ended',
+      connecting: 'Connecting…',
+      reconnecting: 'Reconnecting…',
       endCall: 'End call',
       speaker: 'Speaker',
       camera: 'Camera',

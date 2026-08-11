@@ -1,19 +1,27 @@
 /// The top app bar overlay for the call screen.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/call_strings.dart';
 import '../../models/call_theme.dart';
-import '../../models/call_type.dart';
 
 /// A gradient-backed top bar showing caller info and camera controls.
 class CallTopBar extends StatelessWidget {
+  /// The height of the bar, excluding any safe-area inset applied by the
+  /// parent. Used by [CallScreen] to keep the PiP clear of the bar.
+  static const double height = 80;
+
   final CallTheme theme;
   final CallStrings strings;
   final String callerName;
   final String? callStatusText;
-  final CallType callType;
+
+  /// When provided, the status line listens to this instead of using
+  /// [callStatusText], so a value that changes often does not rebuild the bar.
+  final ValueListenable<String>? callStatusListenable;
+
   final bool isGroupCall;
   final int participantCount;
   final VoidCallback onResetHideTimer;
@@ -26,13 +34,23 @@ class CallTopBar extends StatelessWidget {
     required this.strings,
     required this.callerName,
     this.callStatusText,
-    required this.callType,
+    this.callStatusListenable,
     required this.isGroupCall,
     required this.participantCount,
     required this.onResetHideTimer,
     this.onFlipCamera,
     this.onMinimize,
   });
+
+  Widget _buildStatusText(String status) {
+    return Text(
+      status,
+      style: TextStyle(
+        color: theme.textPrimary.withValues(alpha: 0.7),
+        fontSize: 13,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +65,7 @@ class CallTopBar extends StatelessWidget {
           ],
         ),
       ),
-      height: 80,
+      height: height,
       child: Row(
         children: [
           // Left — Minimize / PiP button
@@ -87,13 +105,13 @@ class CallTopBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  callStatusText ?? strings.calling,
-                  style: TextStyle(
-                    color: theme.textPrimary.withValues(alpha: 0.7),
-                    fontSize: 13,
-                  ),
-                ),
+                if (callStatusListenable != null)
+                  ValueListenableBuilder<String>(
+                    valueListenable: callStatusListenable!,
+                    builder: (context, status, _) => _buildStatusText(status),
+                  )
+                else
+                  _buildStatusText(callStatusText ?? strings.calling),
                 if (isGroupCall)
                   Text(
                     strings.participantsCount(participantCount),

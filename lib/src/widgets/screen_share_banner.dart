@@ -79,7 +79,8 @@ class _ScreenShareBannerState extends State<ScreenShareBanner>
     return RepaintBoundary(
       child: SlideTransition(
         position: _slideAnimation,
-        child: widget.isLocalSharing ? _buildLocalBanner() : _buildRemoteBanner(),
+        child:
+            widget.isLocalSharing ? _buildLocalBanner() : _buildRemoteBanner(),
       ),
     );
   }

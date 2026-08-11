@@ -40,7 +40,8 @@ Inspired by WhatsApp call design. Fully customizable through themes and localize
 - **Full theming** — every color is configurable via `CallTheme`
 - **Speaking indicators** — animated sine-wave bars and glowing tile borders
 - **Signal strength** — 4-level indicator per participant
-- **PiP view** — draggable, corner-snapping, responsive to safe areas
+- **PiP view** — draggable and corner-snapping; follows the controls, expanding into the bar areas while they are hidden and keeping the corner you left it in
+- **Reconnection-safe video** — opaque video surfaces and per-build participant data, so a recreated renderer never leaves a blank or stale frame
 
 ## Installation
 
@@ -48,7 +49,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  call_ui_kit: 0.2.0
+  call_ui_kit: ^0.5.0
 ```
 
 ## Quick Start
@@ -160,6 +161,28 @@ CallScreen(
 )
 ```
 
+### Incoming / Outgoing Call
+
+```dart
+IncomingCallScreen(
+  callerName: 'Alex Rivera',
+  callerAvatarUrl: 'https://example.com/avatar.jpg',
+  callType: CallType.video,
+  onAccept: _acceptCall,
+  onDecline: () => Navigator.pop(context),
+)
+
+OutgoingCallScreen(
+  callerName: 'Alex Rivera',
+  callType: CallType.video,
+  isMuted: _isMuted,
+  isSpeakerOn: _isSpeakerOn,
+  onEndCall: () => Navigator.pop(context),
+  onToggleMute: () => setState(() => _isMuted = !_isMuted),
+  onToggleSpeaker: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
+)
+```
+
 ## API Reference
 
 ### CallScreen
@@ -191,11 +214,12 @@ The main widget. All UI is driven by the parameters you pass — the kit does no
 | `isCameraOff` | `bool` | `false` | Local camera off state |
 | `isSpeakerOn` | `bool` | `false` | Speaker active state |
 | `isScreenSharing` | `bool` | `false` | Local screen sharing state |
-| `isHandRaised` | `bool` | `false` | Local hand raised state |
+| `connectionState` | `CallConnectionState` | `.connected` | Shows a persistent "Connecting…"/"Reconnecting…" banner |
 | `showEncryptionLabel` | `bool` | `true` | Show encryption label in "more" sheet |
 | `theme` | `CallTheme` | `CallTheme.whatsApp()` | Color theme |
 | `strings` | `CallStrings?` | `null` (English defaults) | Localized strings |
 | `callStatusText` | `String?` | `null` | Status text override (e.g. "02:45") |
+| `callStatusListenable` | `ValueListenable<String>?` | `null` | Status text for values that tick; rebuilds only the status line |
 
 #### Optional Callbacks
 
@@ -210,8 +234,8 @@ All optional callbacks — when `null`, the corresponding button is hidden.
 | `onAddParticipant` | `VoidCallback?` | Add participant button (right side) |
 | `onEffects` | `VoidCallback?` | Effects button (right side) |
 | `onMinimize` | `VoidCallback?` | Minimize/PiP button (top bar) |
-| `onRaiseHand` | `VoidCallback?` | Raise hand button |
 | `onMuteParticipant` | `void Function(CallParticipant)?` | Host mutes a participant |
+| `onMuteAll` | `VoidCallback?` | Host taps "Mute all" in the participants panel |
 | `onRemoveParticipant` | `void Function(CallParticipant)?` | Host removes a participant |
 | `moreSheetBuilder` | `Widget Function(BuildContext, CallTheme)?` | Custom "more" sheet content |
 
@@ -307,6 +331,8 @@ CallStrings(
   addParticipant: 'Add participant',
   flipCamera: 'Flip camera',
   effects: 'Effects',
+  connecting: 'Connecting…',      // optional, defaulted
+  reconnecting: 'Reconnecting…',  // optional, defaulted
   isSharingScreen: (name) => '$name is sharing their screen',
   participantsCount: (count) => '$count participant${count == 1 ? '' : 's'}',
   moreParticipants: (count) => '+$count more',
@@ -319,11 +345,106 @@ CallStrings(
 enum CallType { audio, video }
 ```
 
+### CallConnectionState
+
+```dart
+enum CallConnectionState { connected, connecting, reconnecting }
+```
+
+Pass it to `CallScreen.connectionState`. Anything other than `connected` shows a
+persistent banner under the top bar, using `CallStrings.connecting` /
+`CallStrings.reconnecting`. The banner is never auto-hidden.
+
 ### SignalStrength
 
 ```dart
 enum SignalStrength { excellent, good, poor, none }
 ```
+
+## Reconnection
+
+This kit is presentational: it renders the renderer widgets you hand it, in
+place. That matters when a call reconnects.
+
+When a call drops, most WebRTC stacks dispose the old renderer and create a new
+one. If the widget you pass has the same type and no key as the previous one,
+Flutter treats it as an update to the existing element rather than a new
+widget — `initState` does not re-run, and a renderer widget that subscribed to
+the old (now dead) texture keeps painting nothing.
+
+**Give video widgets a key tied to renderer identity.** Bump a generation
+counter whenever you recreate a renderer:
+
+```dart
+int _rendererGeneration = 0;
+
+void _onReconnected() {
+  // ... recreate RTCVideoRenderer instances ...
+  setState(() => _rendererGeneration++);
+}
+
+CallScreen(
+  // ...
+  connectionState: _isReconnecting
+      ? CallConnectionState.reconnecting
+      : CallConnectionState.connected,
+  localVideoWidget: RTCVideoView(
+    _localRenderer,
+    key: ValueKey('local-$_rendererGeneration'),
+  ),
+  remoteVideoWidget: RTCVideoView(
+    _remoteRenderer,
+    key: ValueKey('remote-$_rendererGeneration'),
+  ),
+)
+```
+
+The same applies to `CallParticipant.videoWidget` and `screenShareWidget` in
+group calls.
+
+Two things the kit guarantees on its side:
+
+- Every externally-provided video widget is mounted on an opaque
+  `VideoSurface`. A renderer that paints nothing — because its texture is being
+  attached, was disposed, or threw during paint — shows as **black**, never as a
+  transparent hole in the UI.
+- Participant data is read fresh on every build. Replacing a participant's
+  `videoWidget` via `copyWith` takes effect immediately, even though
+  `CallParticipant` equality deliberately ignores widget fields.
+
+## Performance
+
+Two host-side habits decide how much work a call screen does per second. Both
+are measured by `test/screens/call_screen_rebuild_test.dart`.
+
+**Push ticking values through a listenable.** A call-duration timer updated via
+`setState` re-runs `CallScreen.build` every second, and with it every video
+surface: with three participants that is 30 extra video widget builds over ten
+seconds. Pass `callStatusListenable` instead and only the status line rebuilds:
+
+```dart
+final _callStatus = ValueNotifier<String>('00:00');
+
+// ... a periodic timer writes into _callStatus.value, no setState involved.
+
+CallScreen(
+  callStatusListenable: _callStatus,  // instead of callStatusText
+  // ...
+)
+```
+
+**Hold renderer widgets in fields, don't build them inline.** Constructing
+`RTCVideoView(...)` inside `build` hands the kit a new instance every rebuild,
+so Flutter cannot skip the video subtree. Build them once per renderer
+generation (see [Reconnection](#reconnection)) and store them:
+
+```dart
+late Widget _localVideo;   // rebuilt only when the renderer changes
+late Widget _remoteVideo;
+```
+
+With both in place, a ticking timer costs one `Text` rebuild — zero video
+rebuilds. `example/lib/demos/personal_video_call.dart` implements this pattern.
 
 ## Group Call Layouts
 
@@ -385,21 +506,23 @@ These widgets are exported for standalone use if needed:
 | `FloatingPipView` | Draggable picture-in-picture overlay that snaps to corners |
 | `SpeakingIndicator` | Animated 3-bar sine-wave speaking indicator |
 | `ScreenShareBanner` | Slide-in banner for screen sharing status |
+| `ConnectionStateBanner` | Persistent "Connecting…"/"Reconnecting…" status banner |
 | `MoreBottomSheet` | Bottom sheet with handle bar, encryption label, and cancel button |
 | `ParticipantsPanel` | Draggable scrollable participant list with host actions |
 | `SignalStrengthIcon` | 4-bar signal strength indicator |
+| `VideoSurface` | Opaque mounting surface for externally-provided video widgets |
 
 ## Exported Utilities
 
 | Utility | Description |
 |---------|-------------|
 | `GroupCallLayoutResolver` | Resolves grid layout mode based on participant count |
-| `PipSnapCalculator` | Calculates nearest corner snap position for PiP view |
+| `PipSnapCalculator` | Resolves the PiP's anchor corner (`PipCorner`) and the offset for it |
 
 ## Requirements
 
-- Flutter SDK >= 3.29.0
-- Dart SDK >= 3.11.3
+- Flutter SDK >= 3.22.0
+- Dart SDK ^3.4.0
 
 ## License
 
