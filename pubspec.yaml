@@ -1,0 +1,41 @@
+name: call_native_kit
+description: "Native call UI for Flutter: CallKit and PushKit on iOS, full-screen incoming calls on Android, picture-in-picture and WebRTC audio-session control."
+version: 0.1.0
+homepage: https://github.com/aibekdv/call_native_kit
+repository: https://github.com/aibekdv/call_native_kit
+issue_tracker: https://github.com/aibekdv/call_native_kit/issues
+
+topics:
+  - call
+  - callkit
+  - pushkit
+  - voip
+  - picture-in-picture
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Deliberately narrow: 3.0 -> 3.1 changed the event and params API inside the
+  # same major, and the Android accept-simulation reaches into this plugin by
+  # reflection. Widen only after testing against the new version on a device.
+  flutter_callkit_incoming: ">=3.1.5 <3.2.0"
+  shared_preferences: ^2.5.3
+  uuid: ^4.5.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.aibekdv.call_native_kit
+        pluginClass: CallNativeKitPlugin
+      ios:
+        pluginClass: CallNativeKitPlugin

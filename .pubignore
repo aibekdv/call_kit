@@ -1,0 +1,5 @@
+screenshots/
+build/
+*.iml
+example/build/
+example/.dart_tool/
