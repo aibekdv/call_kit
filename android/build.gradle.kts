@@ -72,5 +72,9 @@ android {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.mockito:mockito-core:5.0.0")
 }
+
+// No compile-time dependency on flutter_callkit_incoming on purpose: everything
+// this plugin needs from it goes through reflection in CallKitBridge, so a host
+// that does not use it still builds, and a version bump cannot break the build
+// — only the named failures CallKitBridge reports.

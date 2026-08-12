@@ -25,6 +25,7 @@ dependencies:
   flutter_callkit_incoming: ">=3.1.5 <3.2.0"
   shared_preferences: ^2.5.3
   uuid: ^4.5.2
+  collection: ^1.19.0
 
 dev_dependencies:
   flutter_test:

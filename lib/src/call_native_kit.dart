@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 
 import 'audio/call_audio_session.dart';
@@ -12,6 +13,7 @@ import 'models/pending_call.dart';
 import 'pip/pip_controller.dart';
 import 'push/incoming_push_gate.dart';
 import 'system/call_ui_platform.dart';
+import 'system/call_uuid.dart';
 import 'system/system_call_ui.dart';
 
 /// Everything the operating system knows about your calls, behind one object.
@@ -146,6 +148,39 @@ class CallNativeKit {
       );
     } catch (e, st) {
       _config.logger.recordError(e, st, reason: 'native initialize');
+    }
+
+    assert(() {
+      unawaited(_assertCallUuidsAgree());
+      return true;
+    }());
+  }
+
+  /// Checks that Dart and native compute the same call UUIDs.
+  ///
+  /// They implement the algorithm separately — native has to, because a
+  /// PushKit call is reported to CallKit before Dart exists — and a drift
+  /// between them is invisible until the app cannot end a call it is in.
+  /// Debug builds only.
+  Future<void> _assertCallUuidsAgree() async {
+    const samples = ['1', 'call_314', 'user-42@example.com'];
+    try {
+      final native = await CallNativeChannels.main
+          .invokeListMethod<String>(CallNativeMethods.computeCallUuids, {
+        'callIds': samples,
+      });
+      if (native == null) return; // Platform does not compute them.
+      final ours = samples.map(systemCallUuid).toList();
+      if (!const ListEquality<String>().equals(native, ours)) {
+        _config.logger.recordError(
+          StateError('call UUID drift: dart=$ours native=$native'),
+          StackTrace.current,
+          reason: 'systemCallUuid and CallUuid.swift disagree',
+        );
+        assert(false, 'call UUID drift: dart=$ours native=$native');
+      }
+    } catch (_) {
+      // Old plugin build or unsupported platform — nothing to compare.
     }
   }
 

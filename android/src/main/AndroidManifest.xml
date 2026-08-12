@@ -1,3 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="dev.aibekdv.call_native_kit">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permissions for the system call UI come from flutter_callkit_incoming's
+         own manifest and are merged in. Nothing is declared here so the plugin
+         adds no surprises to the host's manifest. -->
 </manifest>
