@@ -2,11 +2,13 @@
 ///
 /// Provides a single [CallScreen] widget that handles personal audio calls,
 /// personal video calls, and group video calls. Fully customizable through
-/// [CallTheme] and [CallStrings].
+/// [CallTheme] for colours, [CallDimensions] for sizes and [CallStrings] for
+/// text.
 library;
 
 // Models
 export 'src/models/call_connection_state.dart';
+export 'src/models/call_dimensions.dart';
 export 'src/models/call_participant.dart';
 export 'src/models/call_type.dart';
 export 'src/models/call_strings.dart';

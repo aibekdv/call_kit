@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_participant.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
@@ -22,6 +23,9 @@ class ParticipantsPanel extends StatelessWidget {
 
   /// The visual theme.
   final CallTheme theme;
+
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
 
   /// Localised strings.
   final CallStrings strings;
@@ -49,6 +53,7 @@ class ParticipantsPanel extends StatelessWidget {
     required this.participants,
     this.isLocalHost = false,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     this.onMuteParticipant,
     this.onMuteAll,
@@ -58,6 +63,8 @@ class ParticipantsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.participantsPanel;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       maxChildSize: 0.95,
@@ -66,17 +73,21 @@ class ParticipantsPanel extends StatelessWidget {
         return DecoratedBox(
           decoration: BoxDecoration(
             color: theme.barBackground,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(dimensions.scaled(d.radius)),
+            ),
           ),
           child: Column(
             children: [
               // Handle bar
-              const HandleBar(),
+              HandleBar(dimensions: dimensions),
 
               // Header
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: dimensions.scaled(d.headerHorizontal),
+                  vertical: dimensions.scaled(d.headerVertical),
+                ),
                 child: Row(
                   children: [
                     Text(
@@ -84,7 +95,7 @@ class ParticipantsPanel extends StatelessWidget {
                       '(${participants.length})',
                       style: TextStyle(
                         color: theme.textPrimary,
-                        fontSize: 15,
+                        fontSize: dimensions.scaled(d.titleFontSize),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -106,13 +117,16 @@ class ParticipantsPanel extends StatelessWidget {
                           strings.muteAll,
                           style: TextStyle(
                             color: theme.endCallColor,
-                            fontSize: 13,
+                            fontSize: dimensions.scaled(d.muteAllFontSize),
                           ),
                         ),
                       ),
                     IconButton(
-                      icon:
-                          Icon(Icons.close, color: theme.textPrimary, size: 20),
+                      icon: Icon(
+                        Icons.close,
+                        color: theme.textPrimary,
+                        size: dimensions.scaled(d.closeIconSize),
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -138,23 +152,29 @@ class ParticipantsPanel extends StatelessWidget {
               if (onInvite != null)
                 Padding(
                   padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: MediaQuery.paddingOf(context).bottom + 16,
-                    top: 8,
+                    left: dimensions.scaled(d.inviteHorizontal),
+                    right: dimensions.scaled(d.inviteHorizontal),
+                    bottom: MediaQuery.paddingOf(context).bottom +
+                        dimensions.scaled(d.bottomPadding),
+                    top: dimensions.scaled(d.inviteTop),
                   ),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 44,
+                    height: dimensions.scaled(d.inviteButtonHeight),
                     child: ElevatedButton.icon(
                       onPressed: onInvite,
-                      icon: const Icon(Icons.add, size: 20),
+                      icon: Icon(
+                        Icons.add,
+                        size: dimensions.scaled(d.inviteIconSize),
+                      ),
                       label: Text(strings.invite),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.speakingColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(
+                            dimensions.scaled(d.inviteRadius),
+                          ),
                         ),
                       ),
                     ),
@@ -168,14 +188,18 @@ class ParticipantsPanel extends StatelessWidget {
   }
 
   Widget _buildParticipantRow(BuildContext context, CallParticipant p) {
+    final d = dimensions.participantsPanel;
     final icons = <Widget>[
       if (p.isMuted)
         Icon(Icons.mic_off,
-            size: 18, color: theme.textPrimary.withValues(alpha: 0.38)),
+            size: dimensions.scaled(d.rowIconSize),
+            color: theme.textPrimary.withValues(alpha: 0.38)),
       if (p.isScreenSharing)
-        Icon(Icons.screen_share, size: 18, color: Colors.blue[300]),
+        Icon(Icons.screen_share,
+            size: dimensions.scaled(d.rowIconSize), color: Colors.blue[300]),
       if (p.isHost)
-        const Icon(Icons.workspace_premium, size: 16, color: Colors.amber),
+        Icon(Icons.workspace_premium,
+            size: dimensions.scaled(d.rowHostIconSize), color: Colors.amber),
     ];
 
     return GestureDetector(
@@ -183,20 +207,22 @@ class ParticipantsPanel extends StatelessWidget {
           ? () => _showHostActions(context, p)
           : null,
       child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: dimensions.scaled(d.rowHeight),
+        padding: EdgeInsets.symmetric(
+          horizontal: dimensions.scaled(d.rowHorizontal),
+        ),
         child: Row(
           children: [
             // Avatar
             CallAvatar(
               displayName: p.displayName,
               avatarUrl: p.avatarUrl,
-              radius: 18,
+              radius: dimensions.scaled(d.rowAvatarRadius),
               theme: theme,
               id: p.id,
-              fontSize: 14,
+              fontSize: dimensions.scaled(d.rowAvatarFontSize),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: dimensions.scaled(d.rowAvatarGap)),
 
             // Name + status
             Expanded(
@@ -208,7 +234,7 @@ class ParticipantsPanel extends StatelessWidget {
                     p.displayName,
                     style: TextStyle(
                       color: theme.textPrimary,
-                      fontSize: 14,
+                      fontSize: dimensions.scaled(d.rowNameFontSize),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -218,7 +244,7 @@ class ParticipantsPanel extends StatelessWidget {
                       strings.speaking,
                       style: TextStyle(
                         color: theme.speakingColor,
-                        fontSize: 11,
+                        fontSize: dimensions.scaled(d.rowStatusFontSize),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -228,7 +254,7 @@ class ParticipantsPanel extends StatelessWidget {
                       strings.muted,
                       style: TextStyle(
                         color: theme.textPrimary.withValues(alpha: 0.38),
-                        fontSize: 11,
+                        fontSize: dimensions.scaled(d.rowStatusFontSize),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -239,9 +265,9 @@ class ParticipantsPanel extends StatelessWidget {
 
             // Status icons
             if (icons.isNotEmpty) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: dimensions.scaled(d.rowIconGap)),
               Wrap(
-                spacing: 8,
+                spacing: dimensions.scaled(d.rowIconGap),
                 children: icons,
               ),
             ],
@@ -252,23 +278,31 @@ class ParticipantsPanel extends StatelessWidget {
   }
 
   void _showHostActions(BuildContext context, CallParticipant participant) {
+    final d = dimensions.participantsPanel;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: theme.barBackground,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(dimensions.scaled(d.radius)),
+          ),
         ),
         padding: EdgeInsets.only(
-          bottom: MediaQuery.paddingOf(context).bottom + 16,
-          top: 8,
+          bottom: MediaQuery.paddingOf(context).bottom +
+              dimensions.scaled(d.bottomPadding),
+          top: dimensions.scaled(d.hostActionsTop),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const HandleBar(
-              margin: EdgeInsets.only(bottom: 16),
+            HandleBar(
+              dimensions: dimensions,
+              margin: EdgeInsets.only(
+                bottom: dimensions.scaled(d.hostActionsHandleGap),
+              ),
             ),
             ListTile(
               leading: Icon(

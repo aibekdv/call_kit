@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../models/call_dimensions.dart';
 import '../../models/call_strings.dart';
 import '../../models/call_theme.dart';
 
@@ -10,21 +11,8 @@ import '../../models/call_theme.dart';
 ///
 /// Each optional button is shown only when its callback is provided.
 class CallBottomBar extends StatelessWidget {
-  static const double _buttonSize = 50;
-  static const double _endCallButtonSize = 58;
-  static const double _barPadding = 12;
-  static const double _bottomInset = 20;
-
-  /// The height of the bar, excluding any safe-area inset applied by the
-  /// parent. Used by [CallScreen] to keep the PiP clear of the controls.
-  ///
-  /// Derived from the layout constants rather than hand-written, so it cannot
-  /// drift when the bar's metrics change. `call_bottom_bar_test.dart` asserts
-  /// it against the laid-out bar.
-  static const double height =
-      _bottomInset + _barPadding * 2 + _endCallButtonSize;
-
   final CallTheme theme;
+  final CallDimensions dimensions;
   final CallStrings strings;
   final bool isMuted;
   final bool isCameraOff;
@@ -41,6 +29,7 @@ class CallBottomBar extends StatelessWidget {
   const CallBottomBar({
     super.key,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     required this.isMuted,
     this.isCameraOff = false,
@@ -57,21 +46,26 @@ class CallBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.bottomBar;
+    final buttonSize = dimensions.scaled(d.buttonSize);
+
     return RepaintBoundary(
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 12,
-          right: 12,
-          bottom: _bottomInset,
+        padding: EdgeInsets.only(
+          left: dimensions.scaled(d.horizontalInset),
+          right: dimensions.scaled(d.horizontalInset),
+          bottom: dimensions.scaled(d.bottomInset),
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: _barPadding,
-            horizontal: 8,
+          padding: EdgeInsets.symmetric(
+            vertical: dimensions.scaled(d.verticalPadding),
+            horizontal: dimensions.scaled(d.innerHorizontal),
           ),
           decoration: BoxDecoration(
             color: theme.barBackground.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(40),
+            borderRadius: BorderRadius.circular(
+              dimensions.scaled(d.barRadius),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -82,7 +76,7 @@ class CallBottomBar extends StatelessWidget {
                   icon: Icons.more_horiz,
                   iconColor: theme.textPrimary,
                   backgroundColor: theme.buttonBackground,
-                  size: _buttonSize,
+                  size: buttonSize,
                   onTap: onShowMore!,
                   semanticLabel: strings.moreOptions,
                 ),
@@ -95,7 +89,7 @@ class CallBottomBar extends StatelessWidget {
                       : Icons.screen_share,
                   iconColor: theme.textPrimary,
                   backgroundColor: theme.buttonBackground,
-                  size: _buttonSize,
+                  size: buttonSize,
                   onTap: onToggleScreenShare!,
                   semanticLabel: strings.shareScreen,
                 ),
@@ -106,7 +100,7 @@ class CallBottomBar extends StatelessWidget {
                   icon: isCameraOff ? Icons.videocam_off : Icons.videocam,
                   iconColor: theme.textPrimary,
                   backgroundColor: theme.buttonBackground,
-                  size: _buttonSize,
+                  size: buttonSize,
                   onTap: onToggleCamera!,
                   semanticLabel: strings.camera,
                 ),
@@ -120,7 +114,7 @@ class CallBottomBar extends StatelessWidget {
                 backgroundColor: isSpeakerOn
                     ? theme.speakerActiveBackground
                     : theme.buttonBackground,
-                size: _buttonSize,
+                size: buttonSize,
                 onTap: onToggleSpeaker,
                 semanticLabel: strings.speaker,
               ),
@@ -130,7 +124,7 @@ class CallBottomBar extends StatelessWidget {
                 icon: isMuted ? Icons.mic_off : Icons.mic,
                 iconColor: theme.textPrimary,
                 backgroundColor: theme.buttonBackground,
-                size: _buttonSize,
+                size: buttonSize,
                 onTap: onToggleMute,
                 semanticLabel: isMuted ? strings.unmute : strings.mute,
               ),
@@ -140,8 +134,8 @@ class CallBottomBar extends StatelessWidget {
                 icon: Icons.call_end,
                 iconColor: theme.textPrimary,
                 backgroundColor: theme.endCallColor,
-                size: _endCallButtonSize,
-                iconSize: 26,
+                size: dimensions.scaled(d.endCallButtonSize),
+                iconSize: dimensions.scaled(d.endCallIconSize),
                 onTap: onEndCall,
                 semanticLabel: strings.endCall,
               ),
@@ -157,7 +151,7 @@ class CallBottomBar extends StatelessWidget {
     required Color iconColor,
     required Color backgroundColor,
     required double size,
-    double iconSize = 22,
+    double? iconSize,
     required VoidCallback onTap,
     String? semanticLabel,
   }) {
@@ -181,7 +175,11 @@ class CallBottomBar extends StatelessWidget {
             color: backgroundColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: iconColor, size: iconSize),
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: iconSize ?? dimensions.scaled(dimensions.bottomBar.iconSize),
+          ),
         ),
       ),
     );

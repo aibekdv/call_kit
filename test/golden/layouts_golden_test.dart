@@ -63,6 +63,7 @@ void main() {
     Widget? remoteVideoWidget,
     Widget? screenShareWidget,
     CallConnectionState connectionState = CallConnectionState.connected,
+    CallDimensions dimensions = const CallDimensions(),
   }) {
     return CallScreen(
       callerName: isGroupCall ? 'Design Review' : 'Alex Rivera',
@@ -70,6 +71,7 @@ void main() {
       participants: participants,
       localParticipant: local,
       theme: theme,
+      dimensions: dimensions,
       localVideoWidget: localVideoWidget,
       remoteVideoWidget: remoteVideoWidget,
       screenShareWidget: screenShareWidget,
@@ -124,6 +126,28 @@ void main() {
         screenShareWidget: const ColoredBox(color: Color(0xFF263238)),
       )));
       await expectGolden(tester, 'screen_share');
+    });
+
+    // The numeric tests prove the tokens multiply correctly; only a golden
+    // catches a scaled layout breaking visually — text overflowing the
+    // fixed-height bars, say, or the PiP colliding with the controls.
+    testWidgets('personal video call at the comfortable preset',
+        (tester) async {
+      await tester.pumpWidget(wrap(screen(
+        localVideoWidget: const ColoredBox(color: Color(0xFF37474F)),
+        remoteVideoWidget: const ColoredBox(color: Color(0xFF00695C)),
+        dimensions: const CallDimensions.comfortable(),
+      )));
+      await expectGolden(tester, 'personal_video_call_comfortable');
+    });
+
+    testWidgets('group grid at the comfortable preset', (tester) async {
+      await tester.pumpWidget(wrap(screen(
+        isGroupCall: true,
+        participants: remotes(3),
+        dimensions: const CallDimensions.comfortable(),
+      )));
+      await expectGolden(tester, 'group_grid_2x2_comfortable');
     });
 
     testWidgets('personal call with controls hidden', (tester) async {

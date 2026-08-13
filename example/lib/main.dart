@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'demos/audio_screen_share.dart';
+import 'demos/custom_dimensions.dart';
 import 'demos/group_audio_call.dart';
 import 'demos/group_screen_share.dart';
 import 'demos/group_video_call.dart';
@@ -66,6 +67,11 @@ class DemoHomeScreen extends StatelessWidget {
       subtitle: 'WhatsApp theme — audio with screen share',
     ),
     _DemoItem(
+      icon: Icons.aspect_ratio,
+      title: 'Custom Dimensions',
+      subtitle: 'Presets, per-metric tokens and scale',
+    ),
+    _DemoItem(
       icon: Icons.call_received,
       title: 'Incoming Video Call',
       subtitle: 'WhatsApp theme — accept / decline',
@@ -85,6 +91,7 @@ class DemoHomeScreen extends StatelessWidget {
     GroupScreenShareDemo.new,
     GroupAudioCallDemo.new,
     AudioScreenShareDemo.new,
+    CustomDimensionsDemo.new,
     IncomingCallDemo.new,
     OutgoingCallDemo.new,
   ];

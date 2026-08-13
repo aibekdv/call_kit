@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_participant.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
@@ -16,6 +17,7 @@ import 'participant_tile.dart';
 class ThumbnailRow extends StatelessWidget {
   final List<CallParticipant> participants;
   final CallTheme theme;
+  final CallDimensions dimensions;
   final CallStrings strings;
 
   /// Maximum number of thumbnails before showing a "+N more" tile.
@@ -29,6 +31,7 @@ class ThumbnailRow extends StatelessWidget {
     super.key,
     required this.participants,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     this.maxVisible,
     this.onShowMore,
@@ -39,11 +42,21 @@ class ThumbnailRow extends StatelessWidget {
     final hasOverflow = maxVisible != null && participants.length > maxVisible!;
     final itemCount = hasOverflow ? maxVisible! + 1 : participants.length;
 
+    final d = dimensions.thumbnailRow;
+    final tileWidth = dimensions.scaled(d.tileWidth);
+    final tileMargin = EdgeInsets.symmetric(
+      horizontal: dimensions.scaled(d.tileMargin),
+    );
+    final tileRadius = BorderRadius.circular(dimensions.scaled(d.tileRadius));
+
     return SizedBox(
-      height: 90,
+      height: dimensions.scaled(d.height),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: dimensions.scaled(d.padding),
+          vertical: dimensions.scaled(d.padding),
+        ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
           // "+N more" tile
@@ -53,18 +66,18 @@ class ThumbnailRow extends StatelessWidget {
               onTap: onShowMore,
               child: Container(
                 key: const ValueKey('_more'),
-                width: 70,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
+                width: tileWidth,
+                margin: tileMargin,
                 decoration: BoxDecoration(
                   color: theme.buttonBackground,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: tileRadius,
                 ),
                 child: Center(
                   child: Text(
                     strings.moreParticipants(remaining),
                     style: TextStyle(
                       color: theme.textPrimary,
-                      fontSize: 12,
+                      fontSize: dimensions.scaled(d.moreFontSize),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -76,14 +89,15 @@ class ThumbnailRow extends StatelessWidget {
           final p = participants[index];
           return Container(
             key: ValueKey(p.id),
-            width: 70,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
+            width: tileWidth,
+            margin: tileMargin,
             child: RepaintBoundary(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: tileRadius,
                 child: ParticipantTile(
                   participant: p,
                   theme: theme,
+                  dimensions: dimensions,
                   strings: strings,
                 ),
               ),

@@ -38,6 +38,7 @@ Inspired by WhatsApp call design. Fully customizable through themes and localize
 - **"More" bottom sheet** — customizable actions sheet with encryption label
 - **Full localization** — every user-facing string is configurable via `CallStrings`
 - **Full theming** — every color is configurable via `CallTheme`
+- **Full sizing** — every size is configurable via `CallDimensions`, from a single button to the whole UI at once
 - **Speaking indicators** — animated sine-wave bars and glowing tile borders
 - **Signal strength** — 4-level indicator per participant
 - **PiP view** — draggable and corner-snapping; follows the controls, expanding into the bar areas while they are hidden and keeping the corner you left it in
@@ -49,7 +50,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  call_ui_kit: ^0.5.0
+  call_ui_kit: ^0.6.0
 ```
 
 ## Quick Start
@@ -217,6 +218,7 @@ The main widget. All UI is driven by the parameters you pass — the kit does no
 | `connectionState` | `CallConnectionState` | `.connected` | Shows a persistent "Connecting…"/"Reconnecting…" banner |
 | `showEncryptionLabel` | `bool` | `true` | Show encryption label in "more" sheet |
 | `theme` | `CallTheme` | `CallTheme.whatsApp()` | Color theme |
+| `dimensions` | `CallDimensions` | `CallDimensions()` | Size configuration |
 | `strings` | `CallStrings?` | `null` (English defaults) | Localized strings |
 | `callStatusText` | `String?` | `null` | Status text override (e.g. "02:45") |
 | `callStatusListenable` | `ValueListenable<String>?` | `null` | Status text for values that tick; rebuilds only the status line |
@@ -291,6 +293,7 @@ CallTheme(
   textPrimary: Colors.white,
   textSecondary: Color(0xFFAAAAAA),
   dividerColor: Color(0xFF3A3A3C),
+  acceptCallColor: Color(0xFF25D366),
 )
 ```
 
@@ -302,6 +305,93 @@ final myTheme = const CallTheme.whatsApp().copyWith(
   speakingColor: Colors.blue,
 );
 ```
+
+### CallDimensions
+
+Every size the kit lays out — button diameters, icon and font sizes, bar heights, paddings, gaps and radii — is configurable: 138 metrics across 14 token classes. The defaults reproduce the layout the package has always shipped, so omitting `dimensions` changes nothing.
+
+`CallScreen`, `IncomingCallScreen` and `OutgoingCallScreen` all take a `dimensions` parameter, as does every exported widget.
+
+There are two ways to resize the UI, and they compose.
+
+**Set an individual metric.** Sizes are grouped into one token class per surface, so you name the metric you want and leave the rest alone:
+
+```dart
+CallScreen(
+  dimensions: const CallDimensions(
+    bottomBar: CallBottomBarDimensions(
+      buttonSize: 56,        // default 50
+      endCallButtonSize: 72, // default 58
+      iconSize: 24,          // default 22
+    ),
+    pip: CallPipDimensions(size: Size(120, 160)), // default 90x120
+    participantTile: CallParticipantTileDimensions(avatarRadius: 32),
+  ),
+  ...
+)
+```
+
+**Scale everything at once.** The kit is laid out in raw logical pixels, which suit a phone held at reading distance. On a tablet the controls end up smaller than the rest of your app. `scale` multiplies every token:
+
+```dart
+CallScreen(
+  dimensions: CallDimensions(
+    scale: MediaQuery.sizeOf(context).shortestSide >= 550 ? 1.25 : 1.0,
+  ),
+  ...
+)
+```
+
+`scale` applies on top of the tokens, so an override is scaled too — `endCallButtonSize: 72` at `scale: 1.25` renders 90.
+
+Two presets are provided, and `copyWith` derives a variant from either:
+
+```dart
+const CallDimensions.compact();     // the original phone layout
+const CallDimensions.comfortable(); // tablets, arm's length, gloves
+
+// Note that copyWith replaces the preset's scale rather than multiplying it.
+// comfortable() already carries scale 1.15, so this yields 1.4, not 1.61.
+CallDimensions.comfortable().copyWith(scale: 1.4);
+```
+
+#### Token classes
+
+| Group | Class | Fields | Covers |
+| --- | --- | --- | --- |
+| `topBar` | `CallTopBarDimensions` | 8 | bar height, name/status/count fonts, icon and tap-target sizes |
+| `bottomBar` | `CallBottomBarDimensions` | 9 | control and end-call diameters, icon sizes, pill padding and radius |
+| `rightButtons` | `CallRightButtonsDimensions` | 5 | side button diameter, spacing, insets |
+| `videoContent` | `CallVideoContentDimensions` | 13 | personal-call avatar and name, screen-share panel, grid gutter |
+| `participantTile` | `CallParticipantTileDimensions` | 17 | avatar, name, overlays, speaking bars and border |
+| `thumbnailRow` | `CallThumbnailRowDimensions` | 6 | row height, thumbnail width, margin, radius |
+| `pip` | `CallPipDimensions` | 8 | frame size, margin, radii, fallback avatar and label |
+| `connectionBanner` | `CallConnectionBannerDimensions` | 5 | banner height, padding, icon and font |
+| `screenShareBanner` | `CallScreenShareBannerDimensions` | 9 | banner height, padding, icon, font, stop chip |
+| `participantsPanel` | `CallParticipantsPanelDimensions` | 24 | sheet radius, header, invite button, row metrics |
+| `moreSheet` | `CallMoreSheetDimensions` | 9 | sheet radius, encryption label, cancel button |
+| `handleBar` | `CallHandleBarDimensions` | 3 | drag-handle width, thickness, margin |
+| `incoming` | `CallIncomingScreenDimensions` | 10 | avatar, name, status, accept/decline buttons |
+| `outgoing` | `CallOutgoingScreenDimensions` | 12 | avatar, name, status, end-call and toggle buttons |
+
+Every token class has `copyWith`, `==` and `hashCode`, so a rebuilt instance with the same values does not count as a change.
+
+#### Reserved areas
+
+If you compose your own overlay on top of `CallScreen`, reserve the same space the kit does. These follow whatever you configure:
+
+```dart
+dimensions.topBarHeight
+dimensions.bottomBarHeight
+dimensions.connectionBannerHeight
+dimensions.rightButtonsHeight(hasAdd: true, hasEffects: false)
+```
+
+#### What `scale` does not touch
+
+Four fields stay as declared, and each says so in its own doc comment: `pip.borderWidth`, `participantTile.speakingBorderWidth` and `videoContent.gridGutter` are hairlines, which should stay hairlines however large the rest grows; `videoContent.personalAvatarFontRatio` is a ratio, and the avatar it multiplies is already scaled. You can still set all four directly.
+
+The **Custom Dimensions** entry in the example app switches between the presets, a per-metric override and a live `scale` slider — see `example/lib/demos/custom_dimensions.dart`.
 
 ### CallStrings
 
@@ -497,20 +587,22 @@ CallScreen(
 
 ## Exported Widgets
 
-These widgets are exported for standalone use if needed:
+These widgets are exported for standalone use if needed.
 
-| Widget | Description |
-|--------|-------------|
-| `CallAvatar` | Circle avatar with network image or colored initials fallback |
-| `ParticipantTile` | Single participant tile with video, overlays, and speaking border |
-| `FloatingPipView` | Draggable picture-in-picture overlay that snaps to corners |
-| `SpeakingIndicator` | Animated 3-bar sine-wave speaking indicator |
-| `ScreenShareBanner` | Slide-in banner for screen sharing status |
-| `ConnectionStateBanner` | Persistent "Connecting…"/"Reconnecting…" status banner |
-| `MoreBottomSheet` | Bottom sheet with handle bar, encryption label, and cancel button |
-| `ParticipantsPanel` | Draggable scrollable participant list with host actions |
-| `SignalStrengthIcon` | 4-bar signal strength indicator |
-| `VideoSurface` | Opaque mounting surface for externally-provided video widgets |
+The `Sizing` column says how each one is sized. `dimensions` means it takes a `CallDimensions` and reads its own token group from it, defaulting to `const CallDimensions()`. The rest take their sizes directly as constructor parameters, so the caller scales what it passes.
+
+| Widget | Description | Sizing |
+|--------|-------------|--------|
+| `CallAvatar` | Circle avatar with network image or colored initials fallback | `radius`, `fontSize` |
+| `ParticipantTile` | Single participant tile with video, overlays, and speaking border | `dimensions` |
+| `FloatingPipView` | Draggable picture-in-picture overlay that snaps to corners | `dimensions` |
+| `SpeakingIndicator` | Animated 3-bar sine-wave speaking indicator | `maxHeight`, `minHeight`, `barWidth`, `gap` |
+| `ScreenShareBanner` | Slide-in banner for screen sharing status | `dimensions` |
+| `ConnectionStateBanner` | Persistent "Connecting…"/"Reconnecting…" status banner | `dimensions` |
+| `MoreBottomSheet` | Bottom sheet with handle bar, encryption label, and cancel button | `dimensions` |
+| `ParticipantsPanel` | Draggable scrollable participant list with host actions | `dimensions` |
+| `SignalStrengthIcon` | 4-bar signal strength indicator | `size` |
+| `VideoSurface` | Opaque mounting surface for externally-provided video widgets | fills its parent |
 
 ## Exported Utilities
 

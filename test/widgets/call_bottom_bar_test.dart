@@ -227,7 +227,7 @@ void main() {
 
       expect(
         tester.getSize(find.byType(CallBottomBar)).height,
-        CallBottomBar.height,
+        const CallDimensions().bottomBarHeight,
       );
     });
   });
@@ -252,7 +252,7 @@ void main() {
 
       expect(
         tester.getSize(find.byType(CallTopBar)).height,
-        CallTopBar.height,
+        const CallDimensions().topBarHeight,
       );
     });
   });
@@ -272,7 +272,7 @@ void main() {
 
       expect(
         tester.getSize(find.byType(ConnectionStateBanner)).height,
-        ConnectionStateBanner.height,
+        const CallDimensions().connectionBannerHeight,
       );
     });
   });

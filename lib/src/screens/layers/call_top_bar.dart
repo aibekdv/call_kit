@@ -4,16 +4,14 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/call_dimensions.dart';
 import '../../models/call_strings.dart';
 import '../../models/call_theme.dart';
 
 /// A gradient-backed top bar showing caller info and camera controls.
 class CallTopBar extends StatelessWidget {
-  /// The height of the bar, excluding any safe-area inset applied by the
-  /// parent. Used by [CallScreen] to keep the PiP clear of the bar.
-  static const double height = 80;
-
   final CallTheme theme;
+  final CallDimensions dimensions;
   final CallStrings strings;
   final String callerName;
   final String? callStatusText;
@@ -31,6 +29,7 @@ class CallTopBar extends StatelessWidget {
   const CallTopBar({
     super.key,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     required this.callerName,
     this.callStatusText,
@@ -47,13 +46,38 @@ class CallTopBar extends StatelessWidget {
       status,
       style: TextStyle(
         color: theme.textPrimary.withValues(alpha: 0.7),
-        fontSize: 13,
+        fontSize: dimensions.scaled(dimensions.topBar.statusFontSize),
       ),
+    );
+  }
+
+  /// Keeps the tap target in step with the icon: [IconButton] would otherwise
+  /// stay at its default 48 px however large the glyph grows.
+  Widget _buildIconButton({
+    required IconData icon,
+    required double size,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    final scaled = dimensions.scaled(size);
+    final target = dimensions.scaled(dimensions.topBar.minTapTarget);
+
+    return IconButton(
+      icon: Icon(icon, color: theme.textPrimary, size: scaled),
+      iconSize: scaled,
+      constraints: BoxConstraints.tightFor(width: target, height: target),
+      tooltip: tooltip,
+      onPressed: () {
+        onResetHideTimer();
+        onPressed();
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.topBar;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -65,7 +89,7 @@ class CallTopBar extends StatelessWidget {
           ],
         ),
       ),
-      height: height,
+      height: dimensions.topBarHeight,
       child: Row(
         children: [
           // Left — Minimize / PiP button
@@ -73,17 +97,11 @@ class CallTopBar extends StatelessWidget {
             child: onMinimize != null
                 ? Align(
                     alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: theme.textPrimary,
-                        size: 24,
-                      ),
+                    child: _buildIconButton(
+                      icon: Icons.keyboard_arrow_down_rounded,
+                      size: d.minimizeIconSize,
                       tooltip: strings.pictureInPicture,
-                      onPressed: () {
-                        onResetHideTimer();
-                        onMinimize!();
-                      },
+                      onPressed: onMinimize!,
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -99,12 +117,12 @@ class CallTopBar extends StatelessWidget {
                   callerName,
                   style: TextStyle(
                     color: theme.textPrimary,
-                    fontSize: 16,
+                    fontSize: dimensions.scaled(d.nameFontSize),
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: dimensions.scaled(d.nameGap)),
                 if (callStatusListenable != null)
                   ValueListenableBuilder<String>(
                     valueListenable: callStatusListenable!,
@@ -117,7 +135,7 @@ class CallTopBar extends StatelessWidget {
                     strings.participantsCount(participantCount),
                     style: TextStyle(
                       color: theme.textPrimary.withValues(alpha: 0.54),
-                      fontSize: 11,
+                      fontSize: dimensions.scaled(d.countFontSize),
                     ),
                   ),
               ],
@@ -129,17 +147,11 @@ class CallTopBar extends StatelessWidget {
             child: onFlipCamera != null
                 ? Align(
                     alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.flip_camera_ios,
-                        color: theme.textPrimary,
-                        size: 28,
-                      ),
+                    child: _buildIconButton(
+                      icon: Icons.flip_camera_ios,
+                      size: d.flipIconSize,
                       tooltip: strings.flipCamera,
-                      onPressed: () {
-                        onResetHideTimer();
-                        onFlipCamera!();
-                      },
+                      onPressed: onFlipCamera!,
                     ),
                   )
                 : const SizedBox.shrink(),

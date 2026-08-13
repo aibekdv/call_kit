@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 import 'handle_bar.dart';
@@ -29,6 +30,9 @@ class MoreBottomSheet extends StatelessWidget {
   /// The visual theme.
   final CallTheme theme;
 
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
+
   /// Localised strings (used for the cancel button text).
   final CallStrings strings;
 
@@ -42,6 +46,7 @@ class MoreBottomSheet extends StatelessWidget {
   const MoreBottomSheet({
     super.key,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     this.showEncryptionLabel = true,
     required this.child,
@@ -50,18 +55,23 @@ class MoreBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final d = dimensions.moreSheet;
 
     return Container(
       decoration: BoxDecoration(
         color: theme.barBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(dimensions.scaled(d.radius)),
+        ),
       ),
-      padding: EdgeInsets.only(bottom: bottomPadding + 16),
+      padding: EdgeInsets.only(
+        bottom: bottomPadding + dimensions.scaled(d.bottomPadding),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
-          const HandleBar(),
+          HandleBar(dimensions: dimensions),
 
           // Encryption label
           if (showEncryptionLabel) ...[
@@ -71,39 +81,43 @@ class MoreBottomSheet extends StatelessWidget {
                 Icon(
                   Icons.lock_outline,
                   color: theme.textPrimary.withValues(alpha: 0.54),
-                  size: 14,
+                  size: dimensions.scaled(d.lockIconSize),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: dimensions.scaled(d.lockGap)),
                 Text(
                   strings.endToEndEncrypted,
                   style: TextStyle(
                     color: theme.textPrimary.withValues(alpha: 0.54),
-                    fontSize: 13,
+                    fontSize: dimensions.scaled(d.encryptionFontSize),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: dimensions.scaled(d.sectionGap)),
           ],
 
           // Custom content
           child,
 
-          const SizedBox(height: 12),
+          SizedBox(height: dimensions.scaled(d.sectionGap)),
 
           // Cancel button
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin: EdgeInsets.symmetric(
+              horizontal: dimensions.scaled(d.cancelMargin),
+            ),
             decoration: BoxDecoration(
               color: theme.buttonBackground,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                dimensions.scaled(d.cancelRadius),
+              ),
             ),
             child: ListTile(
               title: Text(
                 strings.cancel,
                 style: TextStyle(
                   color: theme.textPrimary,
-                  fontSize: 16,
+                  fontSize: dimensions.scaled(d.cancelFontSize),
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../models/call_dimensions.dart';
 import '../../models/call_participant.dart';
 import '../../models/call_strings.dart';
 import '../../models/call_theme.dart';
@@ -19,6 +20,7 @@ import '../../widgets/video_surface.dart';
 /// grid, speaker view, or screen-share view accordingly.
 class CallVideoContent extends StatelessWidget {
   final CallTheme theme;
+  final CallDimensions dimensions;
   final CallStrings strings;
   final bool isGroupCall;
   final String callerName;
@@ -40,6 +42,7 @@ class CallVideoContent extends StatelessWidget {
   const CallVideoContent({
     super.key,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     required this.isGroupCall,
     required this.callerName,
@@ -87,6 +90,8 @@ class CallVideoContent extends StatelessWidget {
   }
 
   Widget _buildPersonalCallContent() {
+    final d = dimensions.videoContent;
+
     // Screen sharing active — show WhatsApp-style layout with thumbnails.
     if (screenShareWidget != null || isScreenSharing) {
       return _buildPersonalScreenShareView();
@@ -114,17 +119,19 @@ class CallVideoContent extends StatelessWidget {
             CallAvatar(
               displayName: callerName,
               avatarUrl: callerAvatarUrl,
-              radius: 40,
+              radius: dimensions.scaled(d.personalAvatarRadius),
               theme: theme,
               backgroundColor: theme.buttonBackground,
-              fontSize: 80 * 0.35,
+              fontSize: dimensions.scaled(d.personalAvatarRadius) *
+                  2 *
+                  d.personalAvatarFontRatio,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: dimensions.scaled(d.personalAvatarNameGap)),
             Text(
               callerName,
               style: TextStyle(
                 color: theme.textPrimary,
-                fontSize: 20,
+                fontSize: dimensions.scaled(d.personalNameFontSize),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -155,6 +162,7 @@ class CallVideoContent extends StatelessWidget {
         ThumbnailRow(
           participants: thumbnailParticipants,
           theme: theme,
+          dimensions: dimensions,
           strings: strings,
         ),
       ],
@@ -162,6 +170,8 @@ class CallVideoContent extends StatelessWidget {
   }
 
   Widget _buildLocalSharingInfo() {
+    final d = dimensions.videoContent;
+
     return ColoredBox(
       color: theme.background,
       child: Center(
@@ -171,35 +181,37 @@ class CallVideoContent extends StatelessWidget {
             Icon(
               Icons.screen_share,
               color: theme.textPrimary,
-              size: 48,
+              size: dimensions.scaled(d.sharingIconSize),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: dimensions.scaled(d.sharingIconGap)),
             Text(
               strings.youAreSharingYourScreen,
               style: TextStyle(
                 color: theme.textPrimary,
-                fontSize: 16,
+                fontSize: dimensions.scaled(d.sharingLabelFontSize),
                 fontWeight: FontWeight.w500,
               ),
             ),
             if (onStopScreenShare != null) ...[
-              const SizedBox(height: 24),
+              SizedBox(height: dimensions.scaled(d.sharingLabelButtonGap)),
               GestureDetector(
                 onTap: onStopScreenShare,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 10,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: dimensions.scaled(d.sharingStopHorizontal),
+                    vertical: dimensions.scaled(d.sharingStopVertical),
                   ),
                   decoration: BoxDecoration(
                     color: theme.endCallColor,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(
+                      dimensions.scaled(d.sharingStopRadius),
+                    ),
                   ),
                   child: Text(
                     strings.stopScreenSharing,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: dimensions.scaled(d.sharingStopFontSize),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -271,14 +283,15 @@ class CallVideoContent extends StatelessWidget {
       curve: Curves.easeOutCubic,
       left: col * colWidth,
       top: row * tileHeight,
-      width: tileWidth - 1,
-      height: tileHeight - 1,
+      width: tileWidth - dimensions.videoContent.gridGutter,
+      height: tileHeight - dimensions.videoContent.gridGutter,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: EdgeInsets.all(dimensions.videoContent.gridGutter),
         child: ParticipantTile(
           key: ValueKey(p.id),
           participant: p,
           theme: theme,
+          dimensions: dimensions,
           strings: strings,
         ),
       ),
@@ -309,6 +322,7 @@ class CallVideoContent extends StatelessWidget {
               ? ParticipantTile(
                   participant: activeSpeaker,
                   theme: theme,
+                  dimensions: dimensions,
                   strings: strings,
                 )
               : Container(color: theme.background),
@@ -316,6 +330,7 @@ class CallVideoContent extends StatelessWidget {
         ThumbnailRow(
           participants: thumbnailParticipants,
           theme: theme,
+          dimensions: dimensions,
           strings: strings,
           maxVisible: 6,
           onShowMore: onShowParticipantsPanel,
@@ -341,6 +356,7 @@ class CallVideoContent extends StatelessWidget {
         ThumbnailRow(
           participants: thumbnailParticipants,
           theme: theme,
+          dimensions: dimensions,
           strings: strings,
           maxVisible: 6,
           onShowMore: onShowParticipantsPanel,

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 import '../models/call_type.dart';
@@ -36,6 +37,9 @@ class IncomingCallScreen extends StatelessWidget {
   /// The visual theme. Defaults to [CallTheme.whatsApp].
   final CallTheme theme;
 
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
+
   /// Localised strings. Defaults to [CallStrings.english].
   final CallStrings? strings;
 
@@ -52,6 +56,7 @@ class IncomingCallScreen extends StatelessWidget {
     this.callerAvatarUrl,
     this.callType = CallType.audio,
     this.theme = const CallTheme.whatsApp(),
+    this.dimensions = const CallDimensions(),
     this.strings,
     required this.onAccept,
     required this.onDecline,
@@ -60,6 +65,7 @@ class IncomingCallScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = strings ?? CallStrings.english();
+    final d = dimensions.incoming;
     final statusText =
         callType == CallType.video ? s.incomingVideoCall : s.incomingAudioCall;
 
@@ -77,25 +83,25 @@ class IncomingCallScreen extends StatelessWidget {
                     CallAvatar(
                       displayName: callerName,
                       avatarUrl: callerAvatarUrl,
-                      radius: 50,
+                      radius: dimensions.scaled(d.avatarRadius),
                       theme: theme,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: dimensions.scaled(d.avatarNameGap)),
                     Text(
                       callerName,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: theme.textPrimary,
-                        fontSize: 24,
+                        fontSize: dimensions.scaled(d.nameFontSize),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: dimensions.scaled(d.nameStatusGap)),
                     Text(
                       statusText,
                       style: TextStyle(
                         color: theme.textSecondary,
-                        fontSize: 15,
+                        fontSize: dimensions.scaled(d.statusFontSize),
                       ),
                     ),
                   ],
@@ -105,7 +111,9 @@ class IncomingCallScreen extends StatelessWidget {
 
             // ── Accept / Decline buttons ──
             Padding(
-              padding: const EdgeInsets.only(bottom: 48),
+              padding: EdgeInsets.only(
+                bottom: dimensions.scaled(d.bottomInset),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -114,6 +122,7 @@ class IncomingCallScreen extends StatelessWidget {
                     label: s.decline,
                     color: theme.endCallColor,
                     theme: theme,
+                    dimensions: dimensions,
                     onTap: onDecline,
                   ),
                   _CallActionButton(
@@ -123,6 +132,7 @@ class IncomingCallScreen extends StatelessWidget {
                     label: s.accept,
                     color: theme.acceptCallColor,
                     theme: theme,
+                    dimensions: dimensions,
                     onTap: onAccept,
                   ),
                 ],
@@ -140,6 +150,7 @@ class _CallActionButton extends StatelessWidget {
   final String label;
   final Color color;
   final CallTheme theme;
+  final CallDimensions dimensions;
   final VoidCallback onTap;
 
   const _CallActionButton({
@@ -147,31 +158,38 @@ class _CallActionButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.theme,
+    required this.dimensions,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.incoming;
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: dimensions.scaled(d.actionButtonSize),
+            height: dimensions.scaled(d.actionButtonSize),
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: dimensions.scaled(d.actionIconSize),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: dimensions.scaled(d.actionLabelGap)),
           Text(
             label,
             style: TextStyle(
               color: theme.textSecondary,
-              fontSize: 13,
+              fontSize: dimensions.scaled(d.actionLabelFontSize),
             ),
           ),
         ],

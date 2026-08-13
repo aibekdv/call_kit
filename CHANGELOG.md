@@ -1,3 +1,44 @@
+## 0.6.0
+
+Every size the kit lays out is now configurable. It used to hard-code all of
+them, so a host could restyle the colours and the text but never the metrics.
+
+### Added
+* `CallDimensions` — the sizing counterpart to `CallTheme`. Pass it to `CallScreen`, `IncomingCallScreen` or `OutgoingCallScreen`. It composes one token class per surface, so a host names the metric it wants instead of reaching into a widget it cannot see:
+
+  ```dart
+  CallScreen(
+    dimensions: const CallDimensions(
+      bottomBar: CallBottomBarDimensions(
+        buttonSize: 56,        // was 50
+        endCallButtonSize: 72, // was 58
+      ),
+      pip: CallPipDimensions(size: Size(120, 160)), // was 90x120
+    ),
+    ...
+  )
+  ```
+
+* Fourteen token classes, each with `copyWith`, `==` and `hashCode`, covering all 138 metrics the kit lays out: `CallTopBarDimensions`, `CallBottomBarDimensions`, `CallRightButtonsDimensions`, `CallVideoContentDimensions`, `CallParticipantTileDimensions`, `CallThumbnailRowDimensions`, `CallPipDimensions`, `CallConnectionBannerDimensions`, `CallScreenShareBannerDimensions`, `CallParticipantsPanelDimensions`, `CallMoreSheetDimensions`, `CallHandleBarDimensions`, `CallIncomingScreenDimensions` and `CallOutgoingScreenDimensions`.
+* `CallDimensions.scale` — a multiplier over every token, for enlarging the whole UI at once. The kit's sizes are raw logical pixels, which suit a phone at reading distance but leave the controls smaller than the rest of a tablet host. It composes with the tokens: `endCallButtonSize: 72` at `scale: 1.25` renders 90.
+* `CallDimensions.compact()` and `CallDimensions.comfortable()` presets. `compact()` is the kit's original phone layout; `comfortable()` is sized for a tablet, or for a device used at arm's length and in gloves.
+* `CallDimensions.rightButtonsHeight`, alongside `topBarHeight`, `bottomBarHeight` and `connectionBannerHeight`. A host composing its own overlay has to reserve the same space, and the layer widgets are not exported.
+* `dimensions` on every exported widget — `ParticipantTile`, `FloatingPipView`, `MoreBottomSheet`, `ParticipantsPanel`, `ConnectionStateBanner`, `ScreenShareBanner`, `HandleBar` — defaulting to `const CallDimensions()`.
+* `SpeakingIndicator.gap`. The bar spacing was hard-coded as `2` in two independent places, so a wider `barWidth` left the cluster too tight and the two literals could drift apart.
+
+### Improvements
+* `CallScreen` derives its PiP insets from the dimensions rather than from static bar heights, so the PiP keeps clear of the controls at any size.
+* Tap targets in `CallTopBar` follow the icon size. `IconButton` would otherwise stay at its default 48 px however large the glyph grew.
+* The participant tile's speaking border and the group grid's gutters were bare literals in the middle of a build method. They are tokens now — still hairlines by default, and still exempt from `scale`, but no longer unreachable.
+
+### Breaking
+* `CallTopBar.height`, `CallBottomBar.height` and `ConnectionStateBanner.height` are replaced by `CallDimensions.topBarHeight`, `.bottomBarHeight` and `.connectionBannerHeight`. A constant cannot follow a configurable size, and leaving one behind is how a host ends up reserving the wrong space — see the `94` vs `102` bug fixed in 0.5.0.
+
+### Notes
+* `const CallDimensions()` reproduces the 0.5.0 metrics exactly, so existing consumers see no visual change — the goldens pass unmodified, and `call_dimensions_test.dart` asserts every default against the number the kit used to hard-code.
+* Four fields are deliberately exempt from `scale`, each documented where it is declared: `CallPipDimensions.borderWidth`, `CallParticipantTileDimensions.speakingBorderWidth` and `CallVideoContentDimensions.gridGutter` are hairlines, which should stay hairlines however large the rest grows; `CallVideoContentDimensions.personalAvatarFontRatio` is a ratio, and the avatar it multiplies is already scaled.
+* Font sizes are still multiplied by the host's `MediaQuery.textScaler`. A large accessibility text scale combined with large font tokens can overflow the fixed-height bars.
+
 ## 0.5.0
 
 ### Fixed

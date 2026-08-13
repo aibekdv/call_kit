@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_participant.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
@@ -28,6 +29,9 @@ class ParticipantTile extends StatelessWidget {
   /// The visual theme applied to the tile.
   final CallTheme theme;
 
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
+
   /// Localised strings.
   final CallStrings strings;
 
@@ -39,6 +43,7 @@ class ParticipantTile extends StatelessWidget {
     super.key,
     required this.participant,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     this.onTap,
   });
@@ -47,6 +52,8 @@ class ParticipantTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = participant;
     final showVideo = p.videoWidget != null && !p.isCameraOff;
+    final d = dimensions.participantTile;
+    final inset = dimensions.scaled(d.overlayInset);
 
     return Semantics(
       label: '${p.displayName}'
@@ -69,23 +76,23 @@ class ParticipantTile extends StatelessWidget {
                 ColoredBox(
                   color: theme.barBackground,
                   child: Padding(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(dimensions.scaled(d.padding)),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CallAvatar(
                           displayName: p.displayName,
                           avatarUrl: p.avatarUrl,
-                          radius: 24,
+                          radius: dimensions.scaled(d.avatarRadius),
                           theme: theme,
                           id: p.id,
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: dimensions.scaled(d.avatarNameGap)),
                         Text(
                           p.displayName,
                           style: TextStyle(
                             color: theme.textPrimary,
-                            fontSize: 11,
+                            fontSize: dimensions.scaled(d.nameFontSize),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -99,12 +106,12 @@ class ParticipantTile extends StatelessWidget {
 
               // Layer 3: Bottom gradient (only when video is showing)
               if (showVideo)
-                const Positioned(
+                Positioned(
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  height: 60,
-                  child: DecoratedBox(
+                  height: dimensions.scaled(d.gradientHeight),
+                  child: const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -118,9 +125,10 @@ class ParticipantTile extends StatelessWidget {
               // Layer 4: Bottom-left — name + speaking indicator (only when video is showing)
               if (showVideo)
                 Positioned(
-                  left: 8,
-                  right: p.isMuted ? 28 : 8,
-                  bottom: 8,
+                  left: inset,
+                  right:
+                      p.isMuted ? dimensions.scaled(d.mutedRightInset) : inset,
+                  bottom: inset,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -129,20 +137,21 @@ class ParticipantTile extends StatelessWidget {
                           p.displayName,
                           style: TextStyle(
                             color: theme.textPrimary,
-                            fontSize: 11,
+                            fontSize: dimensions.scaled(d.nameFontSize),
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: dimensions.scaled(d.nameIndicatorGap)),
                       SpeakingIndicator(
                         color: theme.speakingColor,
                         visible: p.isSpeaking,
-                        maxHeight: 12,
-                        minHeight: 3,
-                        barWidth: 2.5,
+                        maxHeight: dimensions.scaled(d.speakingMaxHeight),
+                        minHeight: dimensions.scaled(d.speakingMinHeight),
+                        barWidth: dimensions.scaled(d.speakingBarWidth),
+                        gap: dimensions.scaled(d.speakingBarGap),
                       ),
                     ],
                   ),
@@ -151,11 +160,11 @@ class ParticipantTile extends StatelessWidget {
               // Layer 5: Bottom-right — mic off
               if (p.isMuted)
                 Positioned(
-                  right: 8,
-                  bottom: 8,
+                  right: inset,
+                  bottom: inset,
                   child: Icon(
                     Icons.mic_off,
-                    size: 14,
+                    size: dimensions.scaled(d.micOffIconSize),
                     color: theme.textPrimary.withValues(alpha: 0.54),
                   ),
                 ),
@@ -163,22 +172,22 @@ class ParticipantTile extends StatelessWidget {
               // Layer 6: Top-left — signal strength (only when degraded)
               if (p.signalStrength != SignalStrength.excellent)
                 Positioned(
-                  left: 6,
-                  top: 6,
+                  left: dimensions.scaled(d.signalInset),
+                  top: dimensions.scaled(d.signalInset),
                   child: SignalStrengthIcon(
                     strength: p.signalStrength,
-                    size: 12,
+                    size: dimensions.scaled(d.signalIconSize),
                   ),
                 ),
 
               // Layer 7: Top-right — screen share
               if (p.isScreenSharing)
                 Positioned(
-                  right: 8,
-                  top: 8,
+                  right: inset,
+                  top: inset,
                   child: Icon(
                     Icons.screen_share,
-                    size: 14,
+                    size: dimensions.scaled(d.screenShareIconSize),
                     color: theme.textPrimary.withValues(alpha: 0.7),
                   ),
                 ),
@@ -187,6 +196,7 @@ class ParticipantTile extends StatelessWidget {
               _SpeakingBorderOverlay(
                 isSpeaking: p.isSpeaking,
                 color: theme.speakingColor,
+                strokeWidth: d.speakingBorderWidth,
               ),
             ],
           ),
@@ -203,10 +213,12 @@ class ParticipantTile extends StatelessWidget {
 class _SpeakingBorderOverlay extends StatefulWidget {
   final bool isSpeaking;
   final Color color;
+  final double strokeWidth;
 
   const _SpeakingBorderOverlay({
     required this.isSpeaking,
     required this.color,
+    required this.strokeWidth,
   });
 
   @override
@@ -266,7 +278,7 @@ class _SpeakingBorderOverlayState extends State<_SpeakingBorderOverlay>
         painter: _SpeakingBorderPainter(
           animation: _opacity!,
           color: widget.color,
-          strokeWidth: 2.5,
+          strokeWidth: widget.strokeWidth,
         ),
       ),
     );

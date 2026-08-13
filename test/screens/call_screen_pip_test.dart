@@ -3,13 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:call_ui_kit/call_ui_kit.dart';
 import 'package:call_ui_kit/src/screens/layers/call_bottom_bar.dart';
 import 'package:call_ui_kit/src/screens/layers/call_right_buttons.dart';
-import 'package:call_ui_kit/src/screens/layers/call_top_bar.dart';
 
 Widget _app(Widget child) => MaterialApp(home: child);
 
-/// Mirrors the private geometry constants of `FloatingPipView`.
-const _pipMargin = 16.0;
-const _pipHeight = 120.0;
+/// The unscaled geometry the screens under test are laid out at. Read off the
+/// dimensions rather than hand-copied, so a changed token cannot leave the
+/// expectations behind.
+const _dims = CallDimensions();
+final _pipMargin = _dims.pip.margin;
+final _pipHeight = _dims.pip.size.height;
 
 const _theme = CallTheme.whatsApp();
 const _local = CallParticipant(
@@ -233,7 +235,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final withControls = tester.getTopLeft(find.byType(FloatingPipView));
-      expect(withControls.dy, CallTopBar.height + _pipMargin);
+      expect(withControls.dy, _dims.topBarHeight + _pipMargin);
 
       // Auto-hide cycle: the top bar's space is now free.
       await tester.pump(const Duration(seconds: 5));
@@ -263,7 +265,7 @@ void main() {
       final withControls = tester.getTopLeft(find.byType(FloatingPipView)).dy;
       expect(
         withControls,
-        screenHeight - _pipHeight - CallBottomBar.height - _pipMargin,
+        screenHeight - _pipHeight - _dims.bottomBarHeight - _pipMargin,
       );
 
       await tester.pump(const Duration(seconds: 5));
@@ -305,7 +307,7 @@ void main() {
       final screenHeight = tester.getSize(find.byType(CallScreen)).height;
       expect(
         tester.getTopLeft(find.byType(FloatingPipView)).dy,
-        screenHeight - _pipHeight - CallBottomBar.height - _pipMargin,
+        screenHeight - _pipHeight - _dims.bottomBarHeight - _pipMargin,
       );
     });
   });

@@ -31,6 +31,9 @@ class SpeakingIndicator extends StatefulWidget {
   /// The width of each individual bar, in logical pixels.
   final double barWidth;
 
+  /// The spacing between two bars, in logical pixels.
+  final double gap;
+
   /// The full cycle duration for the sine animation.
   final Duration duration;
 
@@ -44,6 +47,7 @@ class SpeakingIndicator extends StatefulWidget {
     this.maxHeight = 14,
     this.minHeight = 4,
     this.barWidth = 3,
+    this.gap = 2,
     this.duration = const Duration(milliseconds: 700),
     this.visible = true,
   });
@@ -90,7 +94,8 @@ class _SpeakingIndicatorState extends State<SpeakingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final totalWidth = widget.barWidth * _barCount + 2 * (_barCount - 1);
+    final totalWidth =
+        widget.barWidth * _barCount + widget.gap * (_barCount - 1);
     return AnimatedOpacity(
       opacity: widget.visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 200),
@@ -102,6 +107,7 @@ class _SpeakingIndicatorState extends State<SpeakingIndicator>
             animation: _controller,
             color: widget.color,
             barWidth: widget.barWidth,
+            gap: widget.gap,
             maxHeight: widget.maxHeight,
             minHeight: widget.minHeight,
             phaseOffsets: _phaseOffsets,
@@ -116,6 +122,7 @@ class _SpeakingBarsPainter extends CustomPainter {
   final Animation<double> animation;
   final Color color;
   final double barWidth;
+  final double gap;
   final double maxHeight;
   final double minHeight;
   final List<double> phaseOffsets;
@@ -124,6 +131,7 @@ class _SpeakingBarsPainter extends CustomPainter {
     required this.animation,
     required this.color,
     required this.barWidth,
+    required this.gap,
     required this.maxHeight,
     required this.minHeight,
     required this.phaseOffsets,
@@ -133,7 +141,6 @@ class _SpeakingBarsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
     final radius = Radius.circular(barWidth / 2);
-    const gap = 2.0;
 
     for (var i = 0; i < phaseOffsets.length; i++) {
       final sineValue =
@@ -157,6 +164,7 @@ class _SpeakingBarsPainter extends CustomPainter {
   bool shouldRepaint(_SpeakingBarsPainter oldDelegate) =>
       color != oldDelegate.color ||
       barWidth != oldDelegate.barWidth ||
+      gap != oldDelegate.gap ||
       maxHeight != oldDelegate.maxHeight ||
       minHeight != oldDelegate.minHeight;
 }

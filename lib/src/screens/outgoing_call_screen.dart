@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 import '../models/call_type.dart';
@@ -39,6 +40,9 @@ class OutgoingCallScreen extends StatelessWidget {
   /// The visual theme. Defaults to [CallTheme.whatsApp].
   final CallTheme theme;
 
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
+
   /// Localised strings. Defaults to [CallStrings.english].
   final CallStrings? strings;
 
@@ -74,6 +78,7 @@ class OutgoingCallScreen extends StatelessWidget {
     this.callerAvatarUrl,
     this.callType = CallType.audio,
     this.theme = const CallTheme.whatsApp(),
+    this.dimensions = const CallDimensions(),
     this.strings,
     this.callStatusText,
     this.isMuted = false,
@@ -87,6 +92,7 @@ class OutgoingCallScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = strings ?? CallStrings.english();
+    final d = dimensions.outgoing;
 
     return SafeArea(
       child: Scaffold(
@@ -100,13 +106,15 @@ class OutgoingCallScreen extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onMinimize,
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(
+                      dimensions.scaled(d.minimizePadding),
+                    ),
                     child: Tooltip(
                       message: s.pictureInPicture,
                       child: Icon(
                         Icons.keyboard_arrow_down,
                         color: theme.textPrimary,
-                        size: 28,
+                        size: dimensions.scaled(d.minimizeIconSize),
                       ),
                     ),
                   ),
@@ -122,25 +130,25 @@ class OutgoingCallScreen extends StatelessWidget {
                     CallAvatar(
                       displayName: callerName,
                       avatarUrl: callerAvatarUrl,
-                      radius: 50,
+                      radius: dimensions.scaled(d.avatarRadius),
                       theme: theme,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: dimensions.scaled(d.avatarNameGap)),
                     Text(
                       callerName,
                       style: TextStyle(
                         color: theme.textPrimary,
-                        fontSize: 24,
+                        fontSize: dimensions.scaled(d.nameFontSize),
                         fontWeight: FontWeight.w600,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: dimensions.scaled(d.nameStatusGap)),
                     Text(
                       callStatusText ?? s.calling,
                       style: TextStyle(
                         color: theme.textSecondary,
-                        fontSize: 15,
+                        fontSize: dimensions.scaled(d.statusFontSize),
                       ),
                     ),
                   ],
@@ -150,7 +158,9 @@ class OutgoingCallScreen extends StatelessWidget {
 
             // ── Controls row ──
             Padding(
-              padding: const EdgeInsets.only(bottom: 48),
+              padding: EdgeInsets.only(
+                bottom: dimensions.scaled(d.bottomInset),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -159,6 +169,7 @@ class OutgoingCallScreen extends StatelessWidget {
                       icon: Icons.volume_up,
                       isActive: isSpeakerOn,
                       theme: theme,
+                      dimensions: dimensions,
                       onTap: onToggleSpeaker!,
                     ),
                   if (onToggleMute != null)
@@ -166,21 +177,22 @@ class OutgoingCallScreen extends StatelessWidget {
                       icon: isMuted ? Icons.mic_off : Icons.mic,
                       isActive: isMuted,
                       theme: theme,
+                      dimensions: dimensions,
                       onTap: onToggleMute!,
                     ),
                   GestureDetector(
                     onTap: onEndCall,
                     child: Container(
-                      width: 50,
-                      height: 50,
+                      width: dimensions.scaled(d.endCallSize),
+                      height: dimensions.scaled(d.endCallSize),
                       decoration: BoxDecoration(
                         color: theme.endCallColor,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.call_end,
                         color: Colors.white,
-                        size: 22,
+                        size: dimensions.scaled(d.endCallIconSize),
                       ),
                     ),
                   ),
@@ -198,22 +210,26 @@ class _ToggleButton extends StatelessWidget {
   final IconData icon;
   final bool isActive;
   final CallTheme theme;
+  final CallDimensions dimensions;
   final VoidCallback onTap;
 
   const _ToggleButton({
     required this.icon,
     required this.isActive,
     required this.theme,
+    required this.dimensions,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.outgoing;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 50,
-        height: 50,
+        width: dimensions.scaled(d.toggleSize),
+        height: dimensions.scaled(d.toggleSize),
         decoration: BoxDecoration(
           color:
               isActive ? theme.speakerActiveBackground : theme.buttonBackground,
@@ -222,7 +238,7 @@ class _ToggleButton extends StatelessWidget {
         child: Icon(
           icon,
           color: isActive ? theme.speakerActiveIconColor : theme.textPrimary,
-          size: 22,
+          size: dimensions.scaled(d.toggleIconSize),
         ),
       ),
     );

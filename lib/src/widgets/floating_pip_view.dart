@@ -4,6 +4,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../models/call_dimensions.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 import '../utils/pip_snap_calculator.dart';
@@ -35,6 +36,9 @@ class FloatingPipView extends StatefulWidget {
 
   /// The visual theme providing colours and sizing.
   final CallTheme theme;
+
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  final CallDimensions dimensions;
 
   /// Localised strings.
   final CallStrings strings;
@@ -76,6 +80,7 @@ class FloatingPipView extends StatefulWidget {
     this.child,
     required this.displayName,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     required this.screenSize,
     required this.topBarHeight,
@@ -94,11 +99,20 @@ class FloatingPipView extends StatefulWidget {
 }
 
 class _FloatingPipViewState extends State<FloatingPipView> {
-  static const _pipSize = Size(90, 120);
-  static const _margin = 16.0;
-  static const _borderRadius = 12.0;
-  static const _borderWidth = 1.5;
   static const _snapDuration = Duration(milliseconds: 220);
+
+  CallPipDimensions get _pip => widget.dimensions.pip;
+
+  Size get _pipSize => widget.dimensions.scaledSize(_pip.size);
+
+  double get _margin => widget.dimensions.scaled(_pip.margin);
+
+  double get _borderRadius => widget.dimensions.scaled(_pip.borderRadius);
+
+  /// A hairline frame, so it is not scaled: growing it with the window would
+  /// read as a heavier border, not a bigger one. It also sets the inner clip
+  /// radius.
+  double get _borderWidth => _pip.borderWidth;
   static const _snapCurve = Curves.easeOutCubic;
 
   /// The corner the PiP is anchored to — the actual stored position.
@@ -117,6 +131,7 @@ class _FloatingPipViewState extends State<FloatingPipView> {
     final drag = _dragOffset.value;
     if (drag != null &&
         (oldWidget.screenSize != widget.screenSize ||
+            oldWidget.dimensions != widget.dimensions ||
             oldWidget.topBarHeight != widget.topBarHeight ||
             oldWidget.controlsHeight != widget.controlsHeight)) {
       _dragOffset.value = _clampPosition(drag);
@@ -182,23 +197,23 @@ class _FloatingPipViewState extends State<FloatingPipView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CircleAvatar(
-              radius: 20,
+              radius: widget.dimensions.scaled(_pip.avatarRadius),
               backgroundColor: widget.theme.barBackground,
               child: Text(
                 initial,
                 style: TextStyle(
                   color: widget.theme.textPrimary,
-                  fontSize: 14,
+                  fontSize: widget.dimensions.scaled(_pip.initialFontSize),
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: widget.dimensions.scaled(_pip.labelGap)),
             Text(
               widget.strings.you,
               style: TextStyle(
                 color: widget.theme.textPrimary,
-                fontSize: 10,
+                fontSize: widget.dimensions.scaled(_pip.labelFontSize),
               ),
             ),
           ],

@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../models/call_dimensions.dart';
 import '../../models/call_strings.dart';
 import '../../models/call_theme.dart';
 
@@ -10,21 +11,19 @@ import '../../models/call_theme.dart';
 ///
 /// Each button is shown only when its corresponding callback is provided.
 class CallRightButtons extends StatelessWidget {
-  static const double _buttonSize = 48;
-  static const double _spacing = 12;
-
   /// The height this column occupies for the given set of buttons.
   ///
-  /// Used by [CallScreen] to keep the PiP clear of the side buttons.
-  static double heightFor({required bool hasAdd, required bool hasEffects}) {
-    var height = 0.0;
-    if (hasAdd) height += _buttonSize;
-    if (hasEffects) height += _buttonSize;
-    if (hasAdd && hasEffects) height += _spacing;
-    return height;
-  }
+  /// Kept for the layer's own use; hosts reach the same number through
+  /// [CallDimensions.rightButtonsHeight], which they can import.
+  static double heightFor({
+    required bool hasAdd,
+    required bool hasEffects,
+    CallDimensions dimensions = const CallDimensions(),
+  }) =>
+      dimensions.rightButtonsHeight(hasAdd: hasAdd, hasEffects: hasEffects);
 
   final CallTheme theme;
+  final CallDimensions dimensions;
   final CallStrings strings;
   final VoidCallback? onAddParticipant;
   final VoidCallback? onEffects;
@@ -33,6 +32,7 @@ class CallRightButtons extends StatelessWidget {
   const CallRightButtons({
     super.key,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
     this.onAddParticipant,
     this.onEffects,
@@ -41,6 +41,8 @@ class CallRightButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final d = dimensions.rightButtons;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -50,7 +52,7 @@ class CallRightButtons extends StatelessWidget {
             onTap: onAddParticipant!,
             tooltip: strings.addParticipant,
           ),
-          if (onEffects != null) const SizedBox(height: _spacing),
+          if (onEffects != null) SizedBox(height: dimensions.scaled(d.spacing)),
         ],
         if (onEffects != null)
           _buildSideButton(
@@ -75,13 +77,17 @@ class CallRightButtons extends StatelessWidget {
           onTap();
         },
         child: Container(
-          width: _buttonSize,
-          height: _buttonSize,
+          width: dimensions.scaled(dimensions.rightButtons.buttonSize),
+          height: dimensions.scaled(dimensions.rightButtons.buttonSize),
           decoration: BoxDecoration(
             color: theme.buttonBackground,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: theme.textPrimary, size: 22),
+          child: Icon(
+            icon,
+            color: theme.textPrimary,
+            size: dimensions.scaled(dimensions.rightButtons.iconSize),
+          ),
         ),
       ),
     );

@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../models/call_connection_state.dart';
+import '../models/call_dimensions.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
 
@@ -16,15 +17,15 @@ import '../models/call_theme.dart';
 /// The banner is deliberately static — no looping spinner — so that
 /// `pumpAndSettle` still settles in host application tests.
 class ConnectionStateBanner extends StatelessWidget {
-  /// The height of the banner, used by [CallScreen] to keep the PiP clear.
-  static const double height = 36;
-
   /// The current connection state. [CallConnectionState.connected] renders
   /// nothing.
   final CallConnectionState state;
 
   /// The visual theme providing colours and styling.
   final CallTheme theme;
+
+  /// The sizing configuration.
+  final CallDimensions dimensions;
 
   /// The localised strings used for labels.
   final CallStrings strings;
@@ -34,6 +35,7 @@ class ConnectionStateBanner extends StatelessWidget {
     super.key,
     required this.state,
     required this.theme,
+    this.dimensions = const CallDimensions(),
     required this.strings,
   });
 
@@ -45,28 +47,34 @@ class ConnectionStateBanner extends StatelessWidget {
 
     final isReconnecting = state == CallConnectionState.reconnecting;
     final label = isReconnecting ? strings.reconnecting : strings.connecting;
+    final d = dimensions.connectionBanner;
 
     return RepaintBoundary(
       child: Semantics(
         liveRegion: true,
         label: label,
         child: Container(
-          height: height,
+          height: dimensions.connectionBannerHeight,
           color: theme.barBackground.withValues(alpha: 0.9),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: dimensions.scaled(d.horizontalPadding),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 isReconnecting ? Icons.sync_problem : Icons.sync,
                 color: theme.textPrimary,
-                size: 14,
+                size: dimensions.scaled(d.iconSize),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: dimensions.scaled(d.iconGap)),
               Flexible(
                 child: Text(
                   label,
-                  style: TextStyle(color: theme.textPrimary, fontSize: 12),
+                  style: TextStyle(
+                    color: theme.textPrimary,
+                    fontSize: dimensions.scaled(d.fontSize),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

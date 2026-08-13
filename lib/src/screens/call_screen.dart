@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/call_connection_state.dart';
+import '../models/call_dimensions.dart';
 import '../models/call_participant.dart';
 import '../models/call_strings.dart';
 import '../models/call_theme.dart';
@@ -107,6 +108,12 @@ class CallScreen extends StatefulWidget {
   /// The visual theme. Defaults to [CallTheme.whatsApp].
   final CallTheme theme;
 
+  /// The sizing configuration. Defaults to the kit's native metrics.
+  ///
+  /// Raise [CallDimensions.scale] to enlarge the whole call UI at once — see
+  /// [CallDimensions] for why a tablet host wants that.
+  final CallDimensions dimensions;
+
   /// Localised strings. Defaults to [CallStrings.english] when null.
   final CallStrings? strings;
 
@@ -200,6 +207,7 @@ class CallScreen extends StatefulWidget {
     this.connectionState = CallConnectionState.connected,
     this.showEncryptionLabel = true,
     this.theme = const CallTheme.whatsApp(),
+    this.dimensions = const CallDimensions(),
     this.strings,
     this.callStatusText,
     this.callStatusListenable,
@@ -274,9 +282,6 @@ class _ControlsVisibilityController {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  /// Vertical gap between the top bar and the side buttons.
-  static const double _rightButtonsGap = 20;
-
   final _controls = _ControlsVisibilityController();
   final ValueNotifier<bool> _isSwapped = ValueNotifier(false);
 
@@ -360,6 +365,7 @@ class _CallScreenState extends State<CallScreen> {
         valueListenable: _revision,
         builder: (_, __, ___) => MoreBottomSheet(
           theme: widget.theme,
+          dimensions: widget.dimensions,
           strings: _strings,
           showEncryptionLabel: widget.showEncryptionLabel,
           child: widget.moreSheetBuilder!(ctx, widget.theme),
@@ -384,6 +390,7 @@ class _CallScreenState extends State<CallScreen> {
           participants: [widget.localParticipant, ...widget.participants],
           isLocalHost: widget.localParticipant.isHost,
           theme: widget.theme,
+          dimensions: widget.dimensions,
           strings: _strings,
           onMuteParticipant: widget.onMuteParticipant,
           onMuteAll: widget.onMuteAll,
@@ -414,17 +421,19 @@ class _CallScreenState extends State<CallScreen> {
     // Safe-area insets are consumed by the SafeArea below, so they are not
     // added here. The screen-share banner is left out on purpose: it never
     // coexists with the PiP (see _showPip).
-    final bannerInset = showConnectionBanner ? ConnectionStateBanner.height : 0;
+    final dimensions = widget.dimensions;
+    final bannerInset =
+        showConnectionBanner ? dimensions.connectionBannerHeight : 0.0;
     final pipTopInsetVisible = bannerInset +
-        CallTopBar.height +
+        dimensions.topBarHeight +
         (showRightButtons
-            ? _rightButtonsGap +
-                CallRightButtons.heightFor(
+            ? dimensions.scaled(dimensions.rightButtons.gapFromTopBar) +
+                dimensions.rightButtonsHeight(
                   hasAdd: widget.onAddParticipant != null,
                   hasEffects: widget.onEffects != null,
                 )
-            : 0);
-    final pipTopInsetHidden = bannerInset.toDouble();
+            : 0.0);
+    final pipTopInsetHidden = bannerInset;
 
     return SafeArea(
       child: Scaffold(
@@ -442,6 +451,7 @@ class _CallScreenState extends State<CallScreen> {
                     valueListenable: _isSwapped,
                     builder: (context, swapped, _) => CallVideoContent(
                       theme: theme,
+                      dimensions: dimensions,
                       strings: _strings,
                       isGroupCall: widget.isGroupCall,
                       callerName: widget.callerName,
@@ -488,6 +498,7 @@ class _CallScreenState extends State<CallScreen> {
                           ? null
                           : (_screenSharerName ?? widget.callerName),
                       theme: theme,
+                      dimensions: dimensions,
                       strings: _strings,
                       onStop: widget.isScreenSharing
                           ? widget.onStopScreenShare
@@ -498,6 +509,7 @@ class _CallScreenState extends State<CallScreen> {
                       key: const ValueKey('call-connection-banner'),
                       state: widget.connectionState,
                       theme: theme,
+                      dimensions: dimensions,
                       strings: _strings,
                     ),
                   _AutoHideLayer(
@@ -505,6 +517,7 @@ class _CallScreenState extends State<CallScreen> {
                     visible: _controls.visible,
                     child: CallTopBar(
                       theme: theme,
+                      dimensions: dimensions,
                       strings: _strings,
                       callerName: widget.callerName,
                       callStatusText: widget.callStatusText,
@@ -521,14 +534,17 @@ class _CallScreenState extends State<CallScreen> {
                       key: const ValueKey('call-right-buttons'),
                       visible: _controls.visible,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: _rightButtonsGap,
-                          right: 12,
+                        padding: EdgeInsets.only(
+                          top: dimensions
+                              .scaled(dimensions.rightButtons.gapFromTopBar),
+                          right: dimensions
+                              .scaled(dimensions.rightButtons.insetFromEdge),
                         ),
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: CallRightButtons(
                             theme: theme,
+                            dimensions: dimensions,
                             strings: _strings,
                             onAddParticipant: widget.onAddParticipant,
                             onEffects: widget.onEffects,
@@ -551,6 +567,7 @@ class _CallScreenState extends State<CallScreen> {
                 visible: _controls.visible,
                 child: CallBottomBar(
                   theme: theme,
+                  dimensions: dimensions,
                   strings: _strings,
                   isMuted: widget.isMuted,
                   isCameraOff: widget.isCameraOff,
@@ -595,13 +612,15 @@ class _CallScreenState extends State<CallScreen> {
                                   ? widget.callerName
                                   : widget.localParticipant.displayName,
                               theme: theme,
+                              dimensions: dimensions,
                               strings: _strings,
                               screenSize: availableSize,
                               topBarHeight: controlsVisible
                                   ? pipTopInsetVisible
                                   : pipTopInsetHidden,
-                              controlsHeight:
-                                  controlsVisible ? CallBottomBar.height : 0,
+                              controlsHeight: controlsVisible
+                                  ? dimensions.bottomBarHeight
+                                  : 0,
                               onTap: widget.isCameraOff
                                   ? null
                                   : () {
