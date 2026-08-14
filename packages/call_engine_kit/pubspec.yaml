@@ -24,7 +24,7 @@ dependencies:
   # A workspace member: resolved from this checkout while developing, from
   # pub.dev once published. No override to remember either way.
   call_native_kit: ^0.1.0
-  call_ui_kit: ^0.6.0
+  call_ui_kit: ^0.6.1
   # 2.11 is the floor, not a preference: the audio-routing API this uses
   # (AudioManager.setSpeakerOutputPreferred) does not exist before it.
   livekit_client: ">=2.11.0 <3.0.0"

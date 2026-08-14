@@ -6,22 +6,27 @@ Audio and video calling for Flutter, split into packages you can adopt one at a 
 | --- | --- | --- |
 | [call_native_kit](packages/call_native_kit) | The operating system's own call UI: CallKit and PushKit on iOS, full-screen incoming calls on Android, picture-in-picture, and manual-mode control of the WebRTC audio session. No opinion about how calls are signalled or carried. | not yet published |
 | [call_engine_kit](packages/call_engine_kit) | A LiveKit-backed call engine: lifecycle state machine, timers, media controls, screen share, reconnection. Your backend goes behind one interface. | not yet published |
+| [call_ui_kit](packages/call_ui_kit) | The call screens — incoming, outgoing and in-call, for personal and group calls. Depends on nothing but Flutter, so it is equally useful on its own. | [0.6.0](https://pub.dev/packages/call_ui_kit) |
 
-The call screens live in [call_ui_kit](https://github.com/aibekdv/call_ui_kit), which is published separately and has no dependency on either of these — use it, or bring your own UI.
+Each is useful without the others. `call_native_kit` is the one to take if you
+already have a media stack and only need the system call UI; `call_ui_kit` if
+you only need screens.
 
 ## How the pieces fit
 
 ```
         your app
            │
-           ├── call_ui_kit ......... screens
-           │
       call_engine_kit ............. runs the call (LiveKit)
+           │
+           ├── call_ui_kit ........ screens, via the optional overlay
            │
      call_native_kit .............. talks to the operating system
 ```
 
-`call_native_kit` is useful on its own if you already have a media stack and only need the system call UI. `call_engine_kit` depends on it.
+`call_engine_kit` is headless by default. Import
+`package:call_engine_kit/overlay.dart` to get the ready-made call screens, or
+leave it out and render the state yourself.
 
 ## Getting started
 
@@ -60,8 +65,14 @@ cd example && flutter run          # the manual test rig
 
 ## Status
 
-Pre-1.0 and not yet on pub.dev. `call_native_kit` is complete and builds on both
-platforms; `call_engine_kit` is in progress.
+Pre-1.0. All three packages build on both platforms, pass
+`dart pub publish --dry-run` cleanly, and are covered by ~300 unit tests.
+
+What has *not* happened yet is a call between two real devices. Everything a
+unit test can reach is tested; everything it cannot — PushKit delivery, the
+system call screen, audio-session handover, picture-in-picture, recovery after
+the app is killed mid-call — needs the manual pass described in each example's
+README before this is worth trusting in production.
 
 ## License
 

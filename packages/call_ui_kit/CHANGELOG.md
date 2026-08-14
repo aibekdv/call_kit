@@ -1,3 +1,12 @@
+## 0.6.1
+
+Now developed in the [call_kit](https://github.com/aibekdv/call_kit) monorepo,
+alongside `call_native_kit` and `call_engine_kit`. Nothing about the API
+changed.
+
+### Changed
+* Minimum SDK raised to Dart 3.6 / Flutter 3.27, which the monorepo's pub workspace requires. Stay on 0.6.0 if you need Dart 3.4.
+
 ## 0.6.0
 
 Every size the kit lays out is now configurable. It used to hard-code all of
