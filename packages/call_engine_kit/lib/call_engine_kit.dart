@@ -28,6 +28,7 @@ export 'src/config/call_engine_strings.dart'
 export 'src/config/call_timeouts.dart' show CallTimeouts;
 export 'src/domain/entities/call_audio_route.dart'
     show CallAudioRoute, CallViewMode;
+export 'src/domain/entities/call_chat_message.dart' show CallChatMessage;
 export 'src/domain/entities/call_lifecycle_state.dart' show CallLifecycleState;
 export 'src/domain/entities/call_media_state.dart' show CallMediaState;
 export 'src/domain/entities/call_participants_state.dart'
@@ -45,9 +46,20 @@ export 'src/domain/models/call_signaling_exception.dart'
     show CallSignalingErrorKind, CallSignalingException;
 export 'src/domain/models/call_status_info.dart'
     show CallLiveStatus, CallStatusInfo;
+export 'src/engine/call_chat_controller.dart' show CallChatController;
+export 'src/engine/call_media_controls.dart' show CallMediaControls;
+export 'src/engine/call_retry.dart' show CallRetry;
+export 'src/engine/call_room_event_handler.dart' show CallRoomEventHandler;
 export 'src/engine/call_snapshot_publisher.dart' show CallSnapshotPublisher;
 export 'src/engine/call_state_machine.dart' show CallStateMachine;
 export 'src/engine/call_timer_manager.dart' show CallTimerManager;
+export 'src/engine/live_kit_room_service.dart'
+    show CallRoomOptions, LiveKitRoomService;
+export 'src/engine/participants_state_reducer.dart'
+    show ParticipantsStateReducer;
+export 'src/engine/screen_share_controller.dart' show ScreenShareController;
+export 'src/engine/screen_share_event_handler.dart'
+    show ScreenShareEventHandler;
 export 'src/ports/call_permissions_delegate.dart'
     show
         AlwaysGrantedPermissions,
