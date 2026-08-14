@@ -254,9 +254,11 @@ void main() {
       );
 
       expect(custom, isNot(const CallDimensions()));
-      expect(custom, const CallDimensions(
-        bottomBar: CallBottomBarDimensions(endCallButtonSize: 72),
-      ));
+      expect(
+          custom,
+          const CallDimensions(
+            bottomBar: CallBottomBarDimensions(endCallButtonSize: 72),
+          ));
     });
 
     test('token classes compare by value too', () {

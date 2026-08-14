@@ -12,6 +12,7 @@ workspace:
   - packages/call_native_kit
   - packages/call_native_kit/example
   - packages/call_engine_kit
+  - packages/call_ui_kit
 
 dev_dependencies:
   melos: ^8.0.0

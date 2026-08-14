@@ -41,14 +41,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  call_ui_kit:
-    dependency: transitive
-    description:
-      name: call_ui_kit
-      sha256: "26ca228357b7c4e835a7dd26af08c08b87e90c4452defe9687ecf9a8ec1d0392"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.0"
   characters:
     dependency: transitive
     description:

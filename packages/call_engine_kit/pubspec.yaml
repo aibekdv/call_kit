@@ -24,7 +24,7 @@ dependencies:
   # A workspace member: resolved from this checkout while developing, from
   # pub.dev once published. No override to remember either way.
   call_native_kit: ^0.1.0
-  call_ui_kit: ^0.5.0
+  call_ui_kit: ^0.6.0
   # 2.11 is the floor, not a preference: the audio-routing API this uses
   # (AudioManager.setSpeakerOutputPreferred) does not exist before it.
   livekit_client: ">=2.11.0 <3.0.0"
@@ -37,6 +37,9 @@ dependencies:
   flutter_background: ^1.1.0
   equatable: ^2.0.7
   async: ^2.11.0
+  # Lets "now" be controlled in tests, so call duration and state stamping are
+  # deterministic instead of depending on the wall clock.
+  clock: ^1.1.1
 
 dev_dependencies:
   flutter_test:

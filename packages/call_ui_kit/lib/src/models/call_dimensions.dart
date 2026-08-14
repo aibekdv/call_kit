@@ -203,8 +203,7 @@ class CallDimensions {
   double scaled(double base) => base * scale;
 
   /// A two-dimensional token brought to the current [scale].
-  Size scaledSize(Size base) =>
-      Size(base.width * scale, base.height * scale);
+  Size scaledSize(Size base) => Size(base.width * scale, base.height * scale);
 
   // ── Reserved areas ──
   //

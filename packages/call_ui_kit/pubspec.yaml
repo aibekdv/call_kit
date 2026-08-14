@@ -1,9 +1,9 @@
 name: call_ui_kit
 description: A ready-to-use Flutter call UI kit for personal audio, video, and group calls.
 version: 0.6.0
-homepage: https://github.com/aibekdv/call_ui_kit
-repository: https://github.com/aibekdv/call_ui_kit
-issue_tracker: https://github.com/aibekdv/call_ui_kit/issues
+homepage: https://github.com/aibekdv/call_kit/tree/main/packages/call_ui_kit
+repository: https://github.com/aibekdv/call_kit
+issue_tracker: https://github.com/aibekdv/call_kit/issues
 
 topics:
   - call
@@ -12,9 +12,11 @@ topics:
   - webrtc
   - whatsapp
 
+resolution: workspace
+
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.22.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:

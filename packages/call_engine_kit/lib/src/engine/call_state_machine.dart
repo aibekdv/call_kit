@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 
 import '../domain/entities/call_lifecycle_state.dart';
@@ -83,7 +84,7 @@ class CallStateMachine {
     // it to zero.
     final startedAt =
         next == CallLifecycleState.inCall && _timing.value.startedAt == null
-            ? DateTime.now()
+            ? clock.now()
             : _timing.value.startedAt;
 
     _session.value = current.copyWith(status: next, error: error);
