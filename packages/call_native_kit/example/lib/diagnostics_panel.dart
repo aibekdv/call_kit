@@ -73,15 +73,16 @@ class _DiagnosticsPanelState extends State<DiagnosticsPanel> {
   }
 
   Widget _row(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 130, child: Text(label)),
-        Expanded(
-          child: Text(value, style: const TextStyle(fontFamily: 'monospace')),
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 130, child: Text(label)),
+            Expanded(
+              child:
+                  Text(value, style: const TextStyle(fontFamily: 'monospace')),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }

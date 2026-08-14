@@ -12,7 +12,43 @@ workspace:
   - packages/call_native_kit
   - packages/call_native_kit/example
   - packages/call_engine_kit
-  - packages/call_engine_kit/example
 
 dev_dependencies:
   melos: ^8.0.0
+
+# Melos 8 reads its configuration from here rather than melos.yaml, and takes
+# the package list from `workspace:` above.
+melos:
+  name: call_kit
+  repository: https://github.com/aibekdv/call_kit
+
+  command:
+    version:
+      linkToCommits: true
+      workspaceChangelog: true
+      branch: main
+
+  scripts:
+    analyze:
+      description: Analyze every package.
+      run: flutter analyze
+
+    format:
+      description: Format every package.
+      run: melos exec -- dart format .
+
+    format-check:
+      description: Fail if anything is unformatted.
+      run: melos exec -- dart format --output=none --set-exit-if-changed .
+
+    test:
+      description: Run the unit tests of every package that has them.
+      run: melos exec --dir-exists=test -- flutter test
+
+    publish-check:
+      description: Dry-run publishing for the publishable packages.
+      run: melos exec --no-private -- dart pub publish --dry-run
+
+    verify:
+      description: Everything CI runs.
+      run: melos run format-check && melos run analyze && melos run test

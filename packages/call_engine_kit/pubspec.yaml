@@ -1,0 +1,43 @@
+name: call_engine_kit
+description: "A LiveKit-backed audio and video call engine for Flutter: call state machine, media controls, screen share, picture-in-picture and an optional ready-made call overlay."
+version: 0.1.0
+homepage: https://github.com/aibekdv/call_kit/tree/main/packages/call_engine_kit
+repository: https://github.com/aibekdv/call_kit
+issue_tracker: https://github.com/aibekdv/call_kit/issues
+
+topics:
+  - call
+  - video-call
+  - livekit
+  - webrtc
+  - voip
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # A workspace member: resolved from this checkout while developing, from
+  # pub.dev once published. No override to remember either way.
+  call_native_kit: ^0.1.0
+  call_ui_kit: ^0.5.0
+  livekit_client: ">=2.7.0 <3.0.0"
+  # Upper-bounded on purpose: picture-in-picture reaches into this plugin
+  # through the Objective-C runtime, so an upgrade can break at runtime without
+  # breaking the build. See CONTRIBUTING.md.
+  flutter_webrtc: ">=1.4.0 <2.0.0"
+  connectivity_plus: ^7.0.0
+  permission_handler: ">=11.3.1 <13.0.0"
+  flutter_background: ^1.1.0
+  equatable: ^2.0.7
+  async: ^2.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  fake_async: ^1.3.1

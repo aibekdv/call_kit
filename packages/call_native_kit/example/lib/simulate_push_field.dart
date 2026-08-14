@@ -36,17 +36,17 @@ class _SimulatePushFieldState extends State<SimulatePushField> {
     const mapper = DefaultCallPushMapper();
     String result;
     try {
-      final data = (jsonDecode(_controller.text) as Map)
-          .cast<String, Object?>();
+      final data =
+          (jsonDecode(_controller.text) as Map).cast<String, Object?>();
       final message = mapper.parse(data);
       result = switch (message) {
         IncomingCallPush() => (await widget.calls.handleIncomingPush(
-          message,
-        )).name,
-        CallCancelledPush() =>
-          await widget.calls
-              .handleCancelledPush(message)
-              .then((_) => 'cancelled'),
+            message,
+          ))
+              .name,
+        CallCancelledPush() => await widget.calls
+            .handleCancelledPush(message)
+            .then((_) => 'cancelled'),
         null => 'not a call push',
       };
     } catch (e) {
@@ -57,24 +57,24 @@ class _SimulatePushFieldState extends State<SimulatePushField> {
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('Simulate push', style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 8),
-      TextField(
-        controller: _controller,
-        maxLines: 4,
-        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-        decoration: const InputDecoration(border: OutlineInputBorder()),
-      ),
-      const SizedBox(height: 8),
-      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FilledButton(onPressed: _send, child: const Text('Send')),
-          const SizedBox(width: 12),
-          if (_result != null) Expanded(child: Text('→ $_result')),
+          Text('Simulate push', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _controller,
+            maxLines: 4,
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              FilledButton(onPressed: _send, child: const Text('Send')),
+              const SizedBox(width: 12),
+              if (_result != null) Expanded(child: Text('→ $_result')),
+            ],
+          ),
         ],
-      ),
-    ],
-  );
+      );
 }

@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
 CallKit and PushKit integration, native picture-in-picture rendering of a WebRTC
 video track, and manual-mode RTCAudioSession control for Flutter VoIP apps.
                        DESC
-  s.homepage         = 'https://github.com/aibekdv/call_native_kit'
+  s.homepage         = 'https://github.com/aibekdv/call_kit'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Aibek Karatay' => 'aibekdv@gmail.com' }
   s.source           = { :path => '.' }
