@@ -23,6 +23,8 @@ export 'package:call_native_kit/call_native_kit.dart'
 
 export 'src/adapters/rest_call_signaling_client.dart'
     show CallHttpTransport, RestCallFieldNames, RestCallSignalingClient;
+export 'src/call_engine.dart' show CallEngine;
+export 'src/config/call_engine_config.dart' show CallEngineConfig;
 export 'src/config/call_engine_strings.dart'
     show CallEngineStrings, CallEngineStringsResolver;
 export 'src/config/call_timeouts.dart' show CallTimeouts;
@@ -47,6 +49,7 @@ export 'src/domain/models/call_signaling_exception.dart'
 export 'src/domain/models/call_status_info.dart'
     show CallLiveStatus, CallStatusInfo;
 export 'src/engine/call_chat_controller.dart' show CallChatController;
+export 'src/engine/call_controller.dart' show CallController;
 export 'src/engine/call_media_controls.dart' show CallMediaControls;
 export 'src/engine/call_retry.dart' show CallRetry;
 export 'src/engine/call_room_event_handler.dart' show CallRoomEventHandler;
