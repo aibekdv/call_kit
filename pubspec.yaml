@@ -1,0 +1,18 @@
+name: call_kit_workspace
+description: Workspace root for the call_kit packages. Not published.
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# Pub workspace: one resolution and one lockfile for every package and example,
+# so a change to call_native_kit is picked up by call_engine_kit without any
+# path overrides to remember to remove before publishing.
+workspace:
+  - packages/call_native_kit
+  - packages/call_native_kit/example
+  - packages/call_engine_kit
+  - packages/call_engine_kit/example
+
+dev_dependencies:
+  melos: ^8.0.0
