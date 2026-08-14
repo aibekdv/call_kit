@@ -33,7 +33,7 @@ class CallOverlay extends StatefulWidget {
   const CallOverlay({
     required this.engine,
     required this.child,
-    required this.theme,
+    this.theme = const ui.CallTheme.whatsApp(),
     this.dimensions = const ui.CallDimensions(),
     this.strings,
     this.localUserName = 'You',

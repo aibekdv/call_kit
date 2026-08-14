@@ -10,15 +10,24 @@
 /// where it is part of the engine's own surface.
 library;
 
+// Re-exported so a host configures the native layer without a second import.
 export 'package:call_native_kit/call_native_kit.dart'
     show
+        CallCancelledPush,
         CallHandle,
         CallLogger,
+        CallNativeBranding,
         CallNativeConfig,
         CallNativeKit,
         CallNativeStrings,
+        CallNativeTimeouts,
+        CallPushFieldNames,
+        CallPushMapper,
         ConsoleCallLogger,
+        DefaultCallPushMapper,
         IncomingCallPush,
+        PendingCall,
+        PushGateDecision,
         SilentCallLogger;
 
 export 'src/adapters/rest_call_signaling_client.dart'
