@@ -72,6 +72,11 @@ android {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Only to hand CallKitBridge a Context it never actually calls — the
+    // reflection lookup it is tested for happens before any Context use.
+    testImplementation("org.mockito:mockito-core:5.11.0")
 }
 
 // No compile-time dependency on flutter_callkit_incoming on purpose: everything

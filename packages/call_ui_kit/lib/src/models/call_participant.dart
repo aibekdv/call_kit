@@ -82,7 +82,7 @@ class CallParticipant {
   /// Flutter widgets do not have meaningful equality semantics — two identical
   /// widget trees are distinct object references. Including them would cause
   /// every rebuild to report a change, defeating optimisation checks in
-  /// [didUpdateWidget] and list-equality comparisons.
+  /// `didUpdateWidget` and list-equality comparisons.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

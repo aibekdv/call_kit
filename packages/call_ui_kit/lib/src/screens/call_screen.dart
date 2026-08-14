@@ -118,7 +118,7 @@ class CallScreen extends StatefulWidget {
   final CallStrings? strings;
 
   /// Optional call status text override (e.g. "Calling...", "04:23").
-  /// If null, shows [strings.calling].
+  /// If null, shows [CallStrings.calling].
   final String? callStatusText;
 
   /// A frequently-changing status value, such as a call-duration timer.

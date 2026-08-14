@@ -4,6 +4,7 @@
 .pub-cache/
 .pub/
 build/
+.dartdoc/
 pubspec_overrides.yaml
 
 # Only the workspace root keeps a lockfile.

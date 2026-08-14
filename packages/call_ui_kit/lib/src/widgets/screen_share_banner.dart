@@ -13,7 +13,7 @@ import '../models/call_theme.dart';
 /// Renders differently depending on whether the local user or a remote
 /// participant is sharing:
 ///
-/// - **Local sharing**: a red banner with a [Stop] button.
+/// - **Local sharing**: a red banner with a stop button.
 /// - **Remote sharing**: a dark banner showing the sharer's name.
 ///
 /// The banner slides in from the top with a 250 ms ease-out animation.

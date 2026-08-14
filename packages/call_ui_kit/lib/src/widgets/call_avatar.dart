@@ -29,7 +29,7 @@ class CallAvatar extends StatelessWidget {
   final Color? backgroundColor;
 
   /// An identifier used to pick a stable fallback colour.
-  /// Falls back to [displayName.hashCode] when null.
+  /// Falls back to the hash of [displayName] when null.
   final String? id;
 
   /// Font size for the initial letter.  When null, defaults to `radius * 0.75`.

@@ -5,6 +5,12 @@ on:
     branches: [master]
   pull_request:
 
+# A push to master while a pull request is open would otherwise run everything
+# twice, including the macOS job that has to install pods and fetch WebRTC.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dart:
     name: Format, analyze, test
@@ -20,6 +26,10 @@ jobs:
       - run: melos run format-check
       - run: melos run analyze
       - run: melos run test
+      - run: melos run doc-check
+      # Packaging problems are invisible to the analyzer and to tests, and a
+      # published version cannot be taken back.
+      - run: melos run publish-check
 
   android:
     name: Build Android example
@@ -40,6 +50,11 @@ jobs:
       # building it.
       - run: flutter build apk --debug
         working-directory: packages/call_native_kit/example
+      # CallKitBridge reaches into flutter_callkit_incoming by reflection, so a
+      # version bump breaks it without breaking the build. These assert that
+      # the failure is named rather than silent.
+      - run: ./gradlew :call_native_kit:testDebugUnitTest
+        working-directory: packages/call_native_kit/example/android
       # And the combined example is the widest link check there is: all three
       # packages plus LiveKit and WebRTC in one binary.
       - run: flutter build apk --debug
@@ -61,3 +76,20 @@ jobs:
         working-directory: packages/call_native_kit/example
       - run: flutter build ios --debug --no-codesign
         working-directory: example
+      # Dart and Swift compute call UUIDs independently — Swift has to, because
+      # a PushKit call reaches CallKit before any Dart isolate exists. These
+      # golden vectors are the only thing keeping the two from drifting apart,
+      # and a drift produces a call the app can never end.
+      #
+      # The simulator is picked at runtime: hardcoding a device name breaks
+      # every time the runner image ships a new iPhone.
+      - name: Swift unit tests
+        working-directory: packages/call_native_kit/example/ios
+        run: |
+          device=$(xcrun simctl list devices available \
+            | grep -m1 -oE "iPhone [^(]*" | sed 's/ *$//')
+          echo "Testing on $device"
+          xcodebuild test \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -destination "platform=iOS Simulator,name=$device"

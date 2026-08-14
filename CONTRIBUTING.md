@@ -43,7 +43,7 @@ Two failure modes deserve particular care because neither shows up as an error:
   panel's activation count is how you see it.
 * **UUID drift.** Dart and Swift compute call UUIDs independently, because a
   PushKit call is reported to CallKit before any Dart isolate exists. The golden
-  vectors in `test/call_uuid_test.dart` and `ios/Tests/CallUuidTests.swift` must
+  vectors in `test/call_uuid_test.dart` and `example/ios/RunnerTests/RunnerTests.swift` must
   stay identical; a debug-build assertion compares them at runtime too.
 
 ## Dependency version ranges

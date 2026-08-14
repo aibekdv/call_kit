@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Golden vectors for [systemCallUuid].
 ///
-/// **Keep in sync with `ios/Tests/CallUuidTests.swift`.** Swift computes the
+/// **Keep in sync with `example/ios/RunnerTests/RunnerTests.swift`.** Swift computes the
 /// same UUID independently — it has to, because a PushKit call must be
 /// reported to CallKit before Dart exists — so the only thing stopping the two
 /// from drifting apart is this shared table. A drift is not a crash: it is one

@@ -21,7 +21,7 @@ final RegExp _uuidPattern = RegExp(
 ///    (`6ba7b811-9dad-11d1-80b4-00c04fd430c8`), lowercased.
 ///
 /// `CallUuid.swift` mirrors it, and `test/call_uuid_test.dart` shares its
-/// golden vectors with `ios/Tests/CallUuidTests.swift` so the two cannot
+/// golden vectors with `example/ios/RunnerTests/RunnerTests.swift` so the two cannot
 /// drift apart silently.
 String systemCallUuid(String callId) {
   if (_uuidPattern.hasMatch(callId)) return callId;

@@ -48,6 +48,14 @@ melos:
       description: Run the unit tests of every package that has them.
       run: melos exec --dir-exists=test -- flutter test
 
+    doc-check:
+      description: Fail if dartdoc reports a broken reference.
+      # `dart doc` exits 0 on warnings, and a broken `[reference]` is exactly
+      # what is worth failing on: the analyzer never sees it, and pub.dev
+      # deducts points for it. So the output is inspected rather than the exit
+      # code — `tee` keeps it visible, `grep` decides.
+      run: melos exec --no-private -- 'dart doc --output "$MELOS_ROOT_PATH/.dartdoc/$MELOS_PACKAGE_NAME" 2>&1 | tee /dev/stderr | grep -q "Found 0 warnings"'
+
     publish-check:
       description: Dry-run publishing for the publishable packages.
       run: melos exec --no-private -- dart pub publish --dry-run
