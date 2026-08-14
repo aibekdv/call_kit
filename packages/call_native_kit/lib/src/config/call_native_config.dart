@@ -29,7 +29,7 @@ class CallNativeConfig {
     this.branding = const CallNativeBranding(),
     this.timeouts = const CallNativeTimeouts(),
     this.storageKeys = const CallStorageKeys(),
-    this.pushFields = const CallPushFieldNames(),
+    this.pushFields = const CallPushFieldNames.snakeCase(),
     this.logger = const SilentCallLogger(),
     this.store = const SharedPreferencesCallStore(),
   });

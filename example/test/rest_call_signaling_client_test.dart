@@ -1,7 +1,8 @@
 import 'package:call_engine_kit/call_engine_kit.dart';
+import 'package:call_kit_example/signaling/rest_call_signaling_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Records what the adapter asked the network to do.
+/// Records what the client asked the network to do.
 class _RecordingTransport {
   _RecordingTransport(this._responses);
 
@@ -14,7 +15,6 @@ class _RecordingTransport {
     String method,
     String path, {
     Map<String, Object?>? body,
-    Map<String, Object?>? query,
   }) async {
     calls.add('$method $path');
     bodies.add(body);
@@ -227,7 +227,7 @@ void main() {
 
     test('treats a forgotten call as ended', () async {
       client = RestCallSignalingClient(
-        transport: (method, path, {body, query}) async {
+        transport: (method, path, {body}) async {
           throw CallSignalingException.http(statusCode: 404, message: 'gone');
         },
       );
@@ -238,20 +238,14 @@ void main() {
     });
   });
 
-  test('honours custom paths and field names', () async {
+  test('honours a different base path', () async {
     transport = _RecordingTransport({
-      '/api/v2/voice': {'callId': '9', 'room': 'r9'},
-      '/api/v2/voice/9/join': {'accessToken': 't', 'sfu': 'wss://x'},
+      '/api/v2/voice': {'id': '9', 'livekitRoom': 'r9'},
+      '/api/v2/voice/9/join': {'token': 't', 'livekitHost': 'wss://x'},
     });
     client = RestCallSignalingClient(
       transport: transport.call,
       basePath: '/api/v2/voice',
-      fields: const RestCallFieldNames(
-        callId: 'callId',
-        roomName: 'room',
-        token: 'accessToken',
-        serverUrl: 'sfu',
-      ),
     );
 
     final info = await client.initiateCall(
@@ -259,13 +253,12 @@ void main() {
     );
 
     expect(info.token, 't');
-    expect(info.serverUrl, 'wss://x');
     expect(transport.calls.first, 'POST /api/v2/voice');
   });
 
   test('wraps an arbitrary transport failure', () async {
     client = RestCallSignalingClient(
-      transport: (method, path, {body, query}) async =>
+      transport: (method, path, {body}) async =>
           throw StateError('socket closed'),
     );
 

@@ -1,19 +1,25 @@
 /// Field names in your server's call push payload.
 ///
-/// The defaults match the shape this plugin was extracted from:
+/// The four that decide whether a push is a call at all — [type], [callId],
+/// [incomingTypes] and [cancelledTypes] — are required, deliberately. Getting
+/// them wrong fails silently: the payload is not recognised as a call, the
+/// phone never rings, and nothing says why. Naming them makes you look at your
+/// own payload once instead of debugging that later.
 ///
-/// ```json
-/// {"type":"incoming_call","call_id":"314","call_type":"video",
-///  "caller_name":"Aibek","caller_id":"80","is_group":false,
-///  "created_at":"2026-08-12T09:00:00Z","timeout_at":"2026-08-12T09:00:40Z"}
-/// ```
+/// The rest have defaults, because a wrong caller name is visible and a wrong
+/// call id is not.
+///
+/// If your payload is not flat — nested, or a JSON string inside a `metadata`
+/// field — implement [CallPushMapper] instead; this class only renames keys.
 ///
 /// Native code reads the same names from `Info.plist` / `<meta-data>`, so
 /// there is exactly one declared source of truth per app.
 class CallPushFieldNames {
   const CallPushFieldNames({
-    this.type = 'type',
-    this.callId = 'call_id',
+    required this.type,
+    required this.callId,
+    required this.incomingTypes,
+    required this.cancelledTypes,
     this.callType = 'call_type',
     this.callerName = 'caller_name',
     this.callerId = 'caller_id',
@@ -25,9 +31,34 @@ class CallPushFieldNames {
     this.roomName = 'livekit_room',
     this.roomNameTemplate = 'call_{callId}',
     this.videoValue = 'video',
-    this.incomingTypes = const {'incoming_call'},
-    this.cancelledTypes = const {'cancelled_call', 'call_cancelled'},
   });
+
+  /// The snake-cased shape this plugin was extracted from:
+  ///
+  /// ```json
+  /// {"type": "incoming_call", "call_id": "314", "call_type": "video",
+  ///  "caller_name": "Aibek", "is_group": false,
+  ///  "livekit_room": "call_314", "timeout_at": "2026-08-12T09:00:40Z"}
+  /// ```
+  ///
+  /// Named rather than default so that choosing it is a decision somebody
+  /// made, visible at the call site.
+  const CallPushFieldNames.snakeCase()
+      : type = 'type',
+        callId = 'call_id',
+        incomingTypes = const {'incoming_call'},
+        cancelledTypes = const {'cancelled_call', 'call_cancelled'},
+        callType = 'call_type',
+        callerName = 'caller_name',
+        callerId = 'caller_id',
+        isGroup = 'is_group',
+        avatarUrl = 'caller_avatar',
+        reason = 'reason',
+        createdAt = 'created_at',
+        timeoutAt = 'timeout_at',
+        roomName = 'livekit_room',
+        roomNameTemplate = 'call_{callId}',
+        videoValue = 'video';
 
   final String type;
   final String callId;
@@ -81,7 +112,8 @@ class CallPushFieldNames {
       };
 
   factory CallPushFieldNames.fromJson(Map<String, Object?> json) {
-    const fallback = CallPushFieldNames();
+    // Per-field fallback for anything the persisted config did not carry.
+    const fallback = CallPushFieldNames.snakeCase();
     String read(String key, String or) => json[key] as String? ?? or;
     Set<String> readSet(String key, Set<String> or) {
       final raw = json[key];

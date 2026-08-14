@@ -8,5 +8,6 @@ Initial release.
 * `PipController` — Android system picture-in-picture and true native iOS PiP that renders a WebRTC video track through `AVSampleBufferDisplayLayer`.
 * `CallAudioSession` — manual-mode `RTCAudioSession` control with `awaitActive()` so a CallKit-accepted call does not double-activate `AVAudioSession`, plus `diagnostics()`.
 * `CallNativeConfig` — strings, branding, timeouts, storage keys and push field names are all injected; nothing is hardcoded and nothing depends on a localization package.
+* `KeyedCallPushMapper` + `CallPushFieldNames` — you name the keys in your own push payload. The four that decide whether a payload is a call at all are required, because guessing them wrong fails silently. `CallPushFieldNames.snakeCase()` is the shape this plugin was extracted from, for anyone it happens to fit.
 * `handleBackgroundCallPush` — FCM background-isolate entry point that rehydrates the persisted config.
 * `CallNativeKitAppDelegate` / `CallNativeKitHost` (iOS) and `CallNativeKitActivity` (Android) to shrink host setup.

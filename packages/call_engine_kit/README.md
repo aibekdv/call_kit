@@ -82,40 +82,33 @@ abstract interface class CallSignalingClient {
 That is the whole contract with your server: create a call, join it, end it,
 and say whether it is still ringing.
 
-## If your API already looks like this
+## There is no shipped implementation, on purpose
 
-```
-POST /calls                  -> { id, livekitRoom }
-POST /calls/{id}/join        -> { token, livekitHost }
-POST /calls/{id}/end | /decline | /cancel | /leave | /heartbeat
-GET  /calls/{id}/status      -> { status }
-```
+Any adapter this package could ship would encode one particular API's paths,
+body keys and spellings — `POST /calls`, `"type": "VIDEO"`, `livekitHost` —
+and yours will differ. Configuring your way out of somebody else's request
+body is more work than writing your own, and a class named `RestSignaling…`
+that only fits one REST API is worse than none: it reads like the recommended
+path.
 
-use the adapter instead of writing one:
+So the package ships the interface, and a worked example lives in
+[`example/lib/signaling/rest_call_signaling_client.dart`](../../example/lib/signaling/rest_call_signaling_client.dart).
+Copy it into your app and edit the literals — they are literals precisely so
+they are easy to find and change.
 
-```dart
-final signaling = RestCallSignalingClient(
-  transport: (method, path, {body, query}) async {
-    final response = await dio.request<Map<String, Object?>>(
-      path,
-      data: body,
-      queryParameters: query,
-      options: Options(method: method),
-    );
-    return response.data;
-  },
-);
-```
+Two things in it are worth keeping whatever your API looks like, because both
+are call semantics rather than transport:
 
-Note what it does *not* take: an HTTP client. This package brings neither `dio`
-nor `http` — you pass a function, and keep your own interceptors, auth and
-retry policy. Paths and field names are configurable via `basePath` and
-`RestCallFieldNames`.
+* **If creating a call succeeds but joining it fails, cancel the call.**
+  Otherwise the callee's phone rings for a call the caller will never be on the
+  other end of, and they are left with a missed call from nobody.
+* **A call the server has forgotten is `ended`, not an error.** Returning
+  `CallLiveStatus.ended` for a 404 stops the phone ringing for calls that are
+  over; throwing instead makes it ring.
 
-The adapter also handles one thing that is easy to miss: if creating a call
-succeeds but joining it fails, it cancels the call. Otherwise the callee's
-phone rings for a call the caller will never be on the other end of, and they
-are left with a missed call from nobody.
+Note what the interface does not involve: an HTTP client. This package brings
+neither `dio` nor `http`, and the example takes a plain function so it keeps
+your interceptors, auth and retry policy.
 
 ## State
 

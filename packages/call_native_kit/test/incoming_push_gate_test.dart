@@ -17,7 +17,7 @@ void main() {
     String? createdAt,
     String? timeoutAt,
   }) =>
-      const DefaultCallPushMapper().parse({
+      const KeyedCallPushMapper(fields: CallPushFieldNames.snakeCase()).parse({
         'type': 'incoming_call',
         'call_id': callId,
         'call_type': 'audio',

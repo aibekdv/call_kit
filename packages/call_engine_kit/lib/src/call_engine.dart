@@ -87,14 +87,24 @@ class CallEngine {
 
   /// Handles a call push that arrived while the app is running.
   ///
+  /// Reads the payload with the field names you configured, so foreground and
+  /// background pushes are parsed the same way. Pass [mapper] only if this
+  /// path needs a different reading than the rest of the app.
+  ///
   /// Returns what the gate decided, so a host can log why a call did or did
   /// not ring.
   Future<PushGateDecision> handleForegroundPush(
     Map<String, Object?> data, {
     DateTime? sentTime,
-    CallPushMapper mapper = const DefaultCallPushMapper(),
+    CallPushMapper? mapper,
   }) async {
-    final push = mapper.parse(data);
+    final config = _native.config;
+    final push = (mapper ??
+            KeyedCallPushMapper(
+              fields: config.pushFields,
+              incomingCallFallbackName: config.strings.incomingCallFallbackName,
+            ))
+        .parse(data);
     return switch (push) {
       IncomingCallPush() => _native.handleIncomingPush(
           push,

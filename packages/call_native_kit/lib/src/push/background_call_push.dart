@@ -15,7 +15,7 @@ import 'incoming_push_gate.dart';
 /// ```dart
 /// @pragma('vm:entry-point')
 /// Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
-///   const mapper = DefaultCallPushMapper();
+///   const mapper = KeyedCallPushMapper(fields: CallPushFieldNames.snakeCase());
 ///   if (mapper.isCallPush(message.data)) {
 ///     await handleBackgroundCallPush(message.data, sentTime: message.sentTime);
 ///     return;
@@ -46,7 +46,7 @@ Future<PushGateDecision> handleBackgroundCallPush(
   final resolved =
       config ?? await CallNativeConfig.restore() ?? const CallNativeConfig();
   final push = (mapper ??
-          DefaultCallPushMapper(
+          KeyedCallPushMapper(
             fields: resolved.pushFields,
             incomingCallFallbackName: resolved.strings.incomingCallFallbackName,
           ))

@@ -2,7 +2,7 @@ import 'package:call_native_kit/call_native_kit.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const mapper = DefaultCallPushMapper();
+  const mapper = KeyedCallPushMapper(fields: CallPushFieldNames.snakeCase());
 
   Map<String, Object?> incoming([Map<String, Object?> overrides = const {}]) =>
       {
@@ -134,11 +134,12 @@ void main() {
     });
 
     test('honours custom field names', () {
-      const custom = DefaultCallPushMapper(
+      const custom = KeyedCallPushMapper(
         fields: CallPushFieldNames(
           type: 'kind',
           callId: 'id',
           incomingTypes: {'ring'},
+          cancelledTypes: {'hangup'},
           roomNameTemplate: 'sfu-{callId}',
         ),
       );

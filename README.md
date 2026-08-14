@@ -64,7 +64,10 @@ Then implement one interface — how your server creates, joins and ends calls:
 class MySignaling implements CallSignalingClient { /* ... */ }
 ```
 
-If your API looks like `POST /calls`, `POST /calls/{id}/join`, `POST /calls/{id}/end`, start from `RestCallSignalingClient` instead and pass it your own HTTP transport; the package brings no HTTP client of its own.
+Eight methods, no assumptions about your paths, your body keys or your
+spellings — the packages contain no request shape at all. A worked REST
+implementation to copy and edit is in
+[`example/lib/signaling/rest_call_signaling_client.dart`](example/lib/signaling/rest_call_signaling_client.dart).
 
 Platform setup — the parts that cannot be automated, and why — is documented in each package's README.
 

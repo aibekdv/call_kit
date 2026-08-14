@@ -17,10 +17,15 @@ abstract interface class CallPushMapper {
   });
 }
 
-/// Reads a flat payload described by [CallPushFieldNames].
-class DefaultCallPushMapper implements CallPushMapper {
-  const DefaultCallPushMapper({
-    this.fields = const CallPushFieldNames(),
+/// Reads a flat payload whose keys you name in [CallPushFieldNames].
+///
+/// Named for what it does rather than called "default": it fits one payload
+/// shape — a flat map of known keys — and a mapper that silently fits nothing
+/// is a phone that silently never rings. [fields] is required for the same
+/// reason.
+class KeyedCallPushMapper implements CallPushMapper {
+  const KeyedCallPushMapper({
+    required this.fields,
     this.incomingCallFallbackName = 'Incoming call',
   });
 

@@ -59,7 +59,9 @@ calls.events.listen((event) {
 Incoming pushes while the app is running:
 
 ```dart
-const mapper = DefaultCallPushMapper();
+const mapper = KeyedCallPushMapper(
+  fields: CallPushFieldNames.snakeCase(),
+);
 FirebaseMessaging.onMessage.listen((message) async {
   final push = mapper.parse(message.data);
   if (push case IncomingCallPush()) {
@@ -75,7 +77,7 @@ FirebaseMessaging.onMessage.listen((message) async {
 ```dart
 @pragma('vm:entry-point')
 Future<void> backgroundHandler(RemoteMessage message) async {
-  if (const DefaultCallPushMapper().isCallPush(message.data)) {
+  if (mapper.isCallPush(message.data)) {
     await handleBackgroundCallPush(message.data, sentTime: message.sentTime);
     return;
   }
@@ -99,7 +101,27 @@ if (pending != null) joinCall(pending.call);
 
 ## Your push payload
 
-`DefaultCallPushMapper` reads a flat payload:
+The plugin has no idea what your server sends, and does not guess. You name
+the keys:
+
+```dart
+const fields = CallPushFieldNames(
+  type: 'event',              // required
+  callId: 'callId',           // required
+  incomingTypes: {'call.ring'},    // required
+  cancelledTypes: {'call.cancel'}, // required
+  callerName: 'from',
+  roomName: 'room',
+);
+```
+
+Those four are required deliberately: they decide whether a payload is a call
+at all, and getting them wrong fails silently — the push is not recognised, the
+phone never rings, and nothing says why. Naming them costs one look at your own
+payload.
+
+`CallPushFieldNames.snakeCase()` is the shape this plugin was extracted from,
+if it happens to match yours:
 
 ```json
 {"type": "incoming_call", "call_id": "314", "call_type": "video",
@@ -107,8 +129,8 @@ if (pending != null) joinCall(pending.call);
  "livekit_room": "call_314", "timeout_at": "2026-08-12T09:00:40Z"}
 ```
 
-Different field names? Pass a `CallPushFieldNames`. Different shape entirely —
-nested, or a JSON string inside a `metadata` field? Implement `CallPushMapper`.
+Not a flat map — nested, or a JSON string inside a `metadata` field? Implement
+`CallPushMapper` instead; `KeyedCallPushMapper` only renames keys.
 
 Two fields are worth sending even though both are optional:
 

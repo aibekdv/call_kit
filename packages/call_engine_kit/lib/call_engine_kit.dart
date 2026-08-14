@@ -2,9 +2,8 @@
 ///
 /// The engine runs a call — state machine, timers, media controls, screen
 /// share, picture-in-picture, reconnection — and knows nothing about your
-/// backend. Implement [CallSignalingClient], or start from
-/// [RestCallSignalingClient] if your API is shaped like the one this was
-/// extracted from.
+/// backend. Implement [CallSignalingClient] against your own server; a worked
+/// REST example lives in the repository's `example/lib/signaling/`.
 ///
 /// Native call UI comes from `call_native_kit`, which this package re-exports
 /// where it is part of the engine's own surface.
@@ -24,14 +23,12 @@ export 'package:call_native_kit/call_native_kit.dart'
         CallPushFieldNames,
         CallPushMapper,
         ConsoleCallLogger,
-        DefaultCallPushMapper,
         IncomingCallPush,
+        KeyedCallPushMapper,
         PendingCall,
         PushGateDecision,
         SilentCallLogger;
 
-export 'src/adapters/rest_call_signaling_client.dart'
-    show CallHttpTransport, RestCallFieldNames, RestCallSignalingClient;
 export 'src/call_engine.dart' show CallEngine;
 export 'src/config/call_engine_config.dart' show CallEngineConfig;
 export 'src/config/call_engine_strings.dart'

@@ -38,7 +38,7 @@ export 'src/models/pending_call.dart' show PendingCall;
 export 'src/pip/pip_controller.dart' show PipController;
 export 'src/push/background_call_push.dart' show handleBackgroundCallPush;
 export 'src/push/call_push_mapper.dart'
-    show CallPushMapper, DefaultCallPushMapper;
+    show CallPushMapper, KeyedCallPushMapper;
 export 'src/push/incoming_push_gate.dart'
     show IncomingPushGate, PushGateDecision;
 export 'src/storage/call_key_value_store.dart'

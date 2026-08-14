@@ -33,7 +33,7 @@ class _SimulatePushFieldState extends State<SimulatePushField> {
   }
 
   Future<void> _send() async {
-    const mapper = DefaultCallPushMapper();
+    const mapper = KeyedCallPushMapper(fields: CallPushFieldNames.snakeCase());
     String result;
     try {
       final data =
