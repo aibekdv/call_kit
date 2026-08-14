@@ -11,16 +11,57 @@ System call UI (CallKit, PushKit, picture-in-picture) comes from
 screens come from [call_ui_kit](https://github.com/aibekdv/call_ui_kit), or
 from your own widgets.
 
-> **Status: in progress.** The state machine, timers, entities, ports and the
-> REST adapter are done and tested. The media layer, the orchestrating
-> `CallEngine` facade and the optional overlay are not written yet, so this is
-> not usable end to end.
+> **Status: pre-release.** The engine is complete and headless — state
+> machine, timers, media, screen share, in-call chat, reconnection and the
+> `CallEngine` facade. What is missing is the optional call overlay and an
+> example app, so it has not yet been run end to end against a live server.
 
 ## Install
 
 ```yaml
 dependencies:
   call_engine_kit: ^0.1.0
+```
+
+## Use
+
+```dart
+final engine = await CallEngine.create(CallEngineConfig(
+  signaling: MySignaling(),
+  strings: () => const CallEngineStrings.english(),
+));
+
+// Place a call.
+await engine.controller.startOutgoingCall(
+  fetchConnection: () => engine.signaling.initiateCall(
+    const CallInitiationRequest(participantIds: ['42'], isVideo: true),
+  ),
+  roomName: 'call-with-42',
+  displayName: 'Aibek',
+  isVideo: true,
+);
+
+// Render it.
+ValueListenableBuilder(
+  valueListenable: engine.controller.session,
+  builder: (context, session, _) => switch (session.status) {
+    CallLifecycleState.incomingRinging => IncomingCallScreen(/* ... */),
+    CallLifecycleState.inCall => CallScreen(/* ... */),
+    _ => const SizedBox.shrink(),
+  },
+);
+```
+
+Incoming calls need no wiring: `CallEngine.create` registers for them, answers
+the system's questions before it rings, and joins a call the user accepted
+while the app was not running.
+
+Feed it foreground pushes:
+
+```dart
+FirebaseMessaging.onMessage.listen((message) {
+  engine.handleForegroundPush(message.data, sentTime: message.sentTime);
+});
 ```
 
 ## The one interface you implement
