@@ -1,7 +1,7 @@
 name: call_engine_kit
 description: "A LiveKit-backed audio and video call engine for Flutter: call state machine, media controls, screen share, picture-in-picture and an optional ready-made call overlay."
 version: 0.1.0
-homepage: https://github.com/aibekdv/call_kit/tree/main/packages/call_engine_kit
+homepage: https://github.com/aibekdv/call_kit/tree/master/packages/call_engine_kit
 repository: https://github.com/aibekdv/call_kit
 issue_tracker: https://github.com/aibekdv/call_kit/issues
 

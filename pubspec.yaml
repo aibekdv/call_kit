@@ -29,7 +29,7 @@ melos:
     version:
       linkToCommits: true
       workspaceChangelog: true
-      branch: main
+      branch: master
 
   scripts:
     analyze:

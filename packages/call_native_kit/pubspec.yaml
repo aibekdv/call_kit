@@ -1,7 +1,7 @@
 name: call_native_kit
 description: "Native call UI for Flutter: CallKit and PushKit on iOS, full-screen incoming calls on Android, picture-in-picture and WebRTC audio-session control."
 version: 0.1.0
-homepage: https://github.com/aibekdv/call_kit/tree/main/packages/call_native_kit
+homepage: https://github.com/aibekdv/call_kit/tree/master/packages/call_native_kit
 repository: https://github.com/aibekdv/call_kit
 issue_tracker: https://github.com/aibekdv/call_kit/issues
 

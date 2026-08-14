@@ -7,14 +7,17 @@ screen share, reconnection — and knows nothing about your backend. That part
 goes behind one interface.
 
 System call UI (CallKit, PushKit, picture-in-picture) comes from
-[call_native_kit](../call_native_kit), which this package depends on. Call
-screens come from [call_ui_kit](https://github.com/aibekdv/call_ui_kit), or
-from your own widgets.
+[call_native_kit](https://github.com/aibekdv/call_kit/tree/master/packages/call_native_kit), which this package depends on. Call
+screens come from
+[call_ui_kit](https://github.com/aibekdv/call_kit/tree/master/packages/call_ui_kit),
+or from your own widgets.
 
-> **Status: pre-release.** The engine is complete and headless — state
-> machine, timers, media, screen share, in-call chat, reconnection and the
-> `CallEngine` facade. What is missing is the optional call overlay and an
-> example app, so it has not yet been run end to end against a live server.
+> **Status: pre-release.** The engine is complete — state machine, timers,
+> media, screen share, in-call chat, reconnection, the `CallEngine` facade and
+> an optional overlay in `package:call_engine_kit/overlay.dart`. What has not
+> happened yet is a call between two real devices: everything a unit test can
+> reach is tested, and everything it cannot — PushKit, the system call screen,
+> audio-session handover, picture-in-picture — is not.
 
 ## Install
 
@@ -92,7 +95,7 @@ that only fits one REST API is worse than none: it reads like the recommended
 path.
 
 So the package ships the interface, and a worked example lives in
-[`example/lib/signaling/rest_call_signaling_client.dart`](../../example/lib/signaling/rest_call_signaling_client.dart).
+[`example/lib/signaling/rest_call_signaling_client.dart`](https://github.com/aibekdv/call_kit/blob/master/example/lib/signaling/rest_call_signaling_client.dart).
 Copy it into your app and edit the literals — they are literals precisely so
 they are easy to find and change.
 

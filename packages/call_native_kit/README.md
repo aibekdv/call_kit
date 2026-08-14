@@ -11,7 +11,7 @@ calls are signalled or carried.
   session.
 
 Bring your own media stack. If you want a LiveKit-based one, see
-[call_engine_kit](../call_engine_kit).
+[call_engine_kit](https://github.com/aibekdv/call_kit/tree/master/packages/call_engine_kit).
 
 ## Install
 
