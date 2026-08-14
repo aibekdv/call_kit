@@ -1,0 +1,29 @@
+name: call_kit_example
+description: "A small messenger that puts call_native_kit, call_engine_kit and call_ui_kit together."
+publish_to: 'none'
+
+environment:
+  sdk: ^3.6.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # All three, so this is the one place their seams are visible.
+  call_native_kit: any
+  call_engine_kit: any
+  call_ui_kit: any
+  # Signs a LiveKit token locally in development. See dev_token_minter.dart for
+  # why that is acceptable here and nowhere else.
+  crypto: ^3.0.6
+  shared_preferences: ^2.5.3
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

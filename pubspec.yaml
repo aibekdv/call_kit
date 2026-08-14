@@ -14,6 +14,7 @@ workspace:
   - packages/call_engine_kit
   - packages/call_engine_kit/example
   - packages/call_ui_kit
+  - example
 
 dev_dependencies:
   melos: ^8.0.0

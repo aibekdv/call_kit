@@ -28,6 +28,29 @@ you only need screens.
 `package:call_engine_kit/overlay.dart` to get the ready-made call screens, or
 leave it out and render the state yourself.
 
+## Try it
+
+[`example/`](example) is a small messenger built on all three: sign in as
+somebody, call somebody else, see the history, and watch what the operating
+system is doing underneath. Two devices and a local LiveKit server, no backend:
+
+```bash
+docker run --rm -p 7880:7880 -p 7881:7881 -p 7882:7882/udp \
+  livekit/livekit-server --dev --bind 0.0.0.0
+
+cd example
+flutter run --dart-define=LIVEKIT_URL=ws://192.168.1.10:7880
+```
+
+Each package also has its own example, narrower on purpose:
+
+| | For |
+| --- | --- |
+| [`example/`](example) | how the three fit together — **start here** |
+| [`packages/call_native_kit/example`](packages/call_native_kit/example) | the system call UI on its own: push simulator, picture-in-picture, audio diagnostics |
+| [`packages/call_engine_kit/example`](packages/call_engine_kit/example) | the engine at its smallest: one button, one call |
+| [`packages/call_ui_kit/example`](packages/call_ui_kit/example) | the screens as static layouts, no engine |
+
 ## Getting started
 
 ```yaml

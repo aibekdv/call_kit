@@ -40,6 +40,10 @@ jobs:
       # building it.
       - run: flutter build apk --debug
         working-directory: packages/call_native_kit/example
+      # And the combined example is the widest link check there is: all three
+      # packages plus LiveKit and WebRTC in one binary.
+      - run: flutter build apk --debug
+        working-directory: example
 
   ios:
     name: Build iOS example
@@ -55,3 +59,5 @@ jobs:
       # Likewise for Swift.
       - run: flutter build ios --debug --no-codesign
         working-directory: packages/call_native_kit/example
+      - run: flutter build ios --debug --no-codesign
+        working-directory: example
